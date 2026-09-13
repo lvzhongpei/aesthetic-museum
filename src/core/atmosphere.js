@@ -1,14 +1,62 @@
 import * as THREE from 'three';
+import { hexToHsl, hslToHex, luminance } from './color.js';
 
 /**
- * 展区氛围 —— 每进入一个展区，环境光、主光、地面、墙面、雾气与强调色
- * 一起插值到该流派的色彩里。这不是"换皮肤"，是换房间。
+ * 展区氛围 —— 暗场版。
  *
- * 过渡走一段"门廊"：色彩插值的中间点整体压暗一次，
- * 观感上像是穿过一道门洞再进入下一个展厅，而不是被瞬移过去。
+ * 十二间展室共用同一套暗场建筑（深石材地面、黑顶、抛光反射），
+ * 差异全部来自「色相 + 光色 + 发光边的颜色」。
+ * 这不是偷懒：真实的暗场美术馆正是这样做的——空间不变，光变。
+ * 每切一间，观众感到的是"空气变了颜色"，而不是"换了个网站"。
  */
 
-const LERP_KEYS = ['ambient', 'ground', 'key', 'floor', 'wall', 'ceiling', 'fog', 'accent', 'strip', 'text'];
+const LERP_KEYS = [
+  'ambient',
+  'ground',
+  'key',
+  'rim',
+  'floor',
+  'wall',
+  'ceiling',
+  'fog',
+  'accent',
+  'strip',
+  'text',
+];
+
+/**
+ * 从流派色板推出一套暗场色板。只用三个输入：
+ *   强调色（取色板第一色）、色相种子（取环境色或末位色）、整套色板的整体明度。
+ * 整体明度决定这间展室的「空气浓度」——高调的流派（北欧、侘寂）房间会亮一档。
+ */
+export function atmosphereFrom(ex) {
+  const a = ex.atmosphere || {};
+  const sw = ex.swatches.map((s) => s.hex);
+  const accent = a.accent || sw[0];
+  const seed = a.ambient || sw[4] || sw[3] || accent;
+
+  const hSeed = hexToHsl(seed).h;
+  const hAcc = hexToHsl(accent).h;
+
+  const avg = sw.reduce((s, c) => s + luminance(c), 0) / sw.length;
+  const air = Math.max(0, Math.min(1, (avg - 0.08) / 0.62));
+  const wallL = 0.15 + air * 0.062;
+  const floorL = 0.095 + air * 0.05;
+
+  return {
+    ambient: hslToHex(hSeed, 0.28, 0.095 + air * 0.05),
+    ground: hslToHex(hSeed, 0.22, 0.04),
+    key: hslToHex(hAcc, 0.09, 0.94),
+    rim: hslToHex(hAcc, 0.7, 0.56),
+    floor: hslToHex(hSeed, 0.16, floorL),
+    wall: hslToHex(hSeed, 0.15, wallL),
+    ceiling: hslToHex(hSeed, 0.18, 0.07),
+    fog: hslToHex(hSeed, 0.26, 0.055),
+    accent,
+    strip: hslToHex(hAcc, 0.05, 0.96),
+    text: '#F1F0EB',
+  };
+}
 
 function toSet(src) {
   const out = {};
@@ -18,42 +66,12 @@ function toSet(src) {
   return out;
 }
 
-/** 把流派色板推出一套环境色，缺项时从已有项推导，避免每件藏品都要手写全部字段 */
-export function atmosphereFrom(ex) {
-  const a = ex.atmosphere || {};
-  const sw = ex.swatches.map((s) => s.hex);
-  const wall = a.wall || a.ambient || '#EEEEEE';
-  return {
-    ambient: a.ambient || '#F2F2F2',
-    ground: a.floor || sw[4] || '#DDDDDD',
-    key: a.key || '#FFFFFF',
-    floor: a.floor || '#E4E4E4',
-    wall,
-    // 天花比墙暗一档、收口比墙暗两档：这两级明度差是空间能被读出来的唯一依据
-    ceiling: a.ceiling || shade(wall, 0.9),
-    fog: a.fog || wall || '#E4E4E4',
-    accent: a.accent || sw[0],
-    strip: a.key || '#FFFFFF',
-    text: a.text || '#111111',
-  };
-}
-
-/** 按系数压暗一个十六进制色 */
-function shade(hex, k) {
-  const n = parseInt(String(hex).replace('#', ''), 16);
-  const c = (v) => Math.max(0, Math.min(255, Math.round(v * k)));
-  const r = c((n >> 16) & 255);
-  const g = c((n >> 8) & 255);
-  const b = c(n & 255);
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-}
-
 export function createAtmosphere(stage, initial) {
   const from = toSet(initial);
   const to = toSet(initial);
   const now = toSet(initial);
   let t = 1;
-  let duration = 0.78;
+  let duration = 0.9;
   let dim = 0;
   let doorway = 1;
   let accentHex = initial.accent;
@@ -89,10 +107,11 @@ export function createAtmosphere(stage, initial) {
   }
 
   function apply() {
-    const { lights, mats, scene } = stage;
+    const { lights, mats, scene, mirror } = stage;
     lights.hemi.color.copy(now.ambient);
     lights.hemi.groundColor.copy(now.ground);
     lights.key.color.copy(now.key);
+    lights.rim.color.copy(now.rim);
     lights.fill.color.copy(now.accent);
     lights.spot.color.copy(now.key);
 
@@ -102,25 +121,35 @@ export function createAtmosphere(stage, initial) {
     mats.floor.color.copy(now.floor);
     mats.wall.color.copy(now.wall);
     mats.ceiling.color.copy(now.ceiling);
+    if (mats.cap) mats.cap.color.copy(now.ceiling);
+
+    // 洗墙光：环形内墙靠平行光照不到（几何上的必然），
+    // 所以墙面亮度由自发光梯度承担 —— 这也正是真实展厅的做法。
+    if (mats.wall.emissive) mats.wall.emissive.copy(now.wall).multiplyScalar(1.3);
+    if (mats.floor.emissive) mats.floor.emissive.copy(now.floor).multiplyScalar(0.9);
+    if (mats.ceiling.emissive) mats.ceiling.emissive.copy(now.ceiling).multiplyScalar(1.2);
+    if (mats.cap && mats.cap.emissive) mats.cap.emissive.copy(now.ceiling).multiplyScalar(1.2);
     mats.disc.color.copy(now.accent);
     mats.strip.color.copy(now.strip);
-    if (mats.trim) {
-      mats.trim.color.copy(now.wall).multiplyScalar(0.52);
-      mats.cove.color.copy(now.ceiling).multiplyScalar(0.86);
+    mats.trim.color.copy(now.fog).multiplyScalar(0.6);
+
+    // 反射镜面跟着染色，倒影才不会和房间脱节
+    if (mirror && mirror.material && mirror.material.uniforms && mirror.material.uniforms.color) {
+      mirror.material.uniforms.color.value.copy(now.floor).multiplyScalar(3.8);
     }
   }
 
   function update(dt) {
     if (t < 1) {
       t = Math.min(1, t + dt / duration);
-      const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // easeInOutQuad
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // easeInOutCubic
       LERP_KEYS.forEach((k) => {
         tmp.copy(from[k]);
         tmp.lerp(to[k], e);
         now[k].copy(tmp);
       });
-      // 门廊压暗：中段最暗，两端归零
-      dim = Math.sin(t * Math.PI) * 0.34 * doorway;
+      // 门廊压暗；暗场里幅度必须收小，否则中段会黑成一片
+      dim = Math.sin(t * Math.PI) * 0.2 * doorway;
       apply();
     } else if (dim !== 0) {
       dim = 0;
@@ -136,11 +165,18 @@ export function createAtmosphere(stage, initial) {
     get dim() {
       return dim;
     },
+    /** 0→1→0 的过渡脉冲，交给后期调色做暗角收紧与色散放大 */
+    get transition() {
+      return t < 1 ? Math.sin(t * Math.PI) * doorway : 0;
+    },
     get transitioning() {
       return t < 1;
     },
     get accent() {
       return accentHex;
+    },
+    get accentColor() {
+      return now.accent;
     },
     get text() {
       return textHex;

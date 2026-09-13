@@ -25,11 +25,29 @@ export function createHud({ exhibits, onSelect }) {
     indexClose: document.getElementById('indexClose'),
     indexScrim: document.getElementById('indexScrim'),
     indexList: document.getElementById('indexList'),
+    rail: document.getElementById('rail'),
   };
 
   let active = 0;
 
   el.progressTotal.textContent = String(exhibits.length).padStart(2, '0');
+
+  /** 右侧导览轨：十二个刻度。刻度是导航，不是装饰。 */
+  function buildRail() {
+    el.rail.innerHTML = exhibits
+      .map(
+        (ex, i) => `
+        <button class="rail__tick${i === active ? ' is-on' : ''}" type="button"
+                data-rail="${i}" aria-label="${esc(ex.name.en)}" title="${esc(ex.name.zh)} / ${esc(ex.name.en)}">
+          <span class="rail__no">${esc(ex.no)}</span>
+          <span class="rail__bar"></span>
+        </button>`,
+      )
+      .join('');
+    el.rail.querySelectorAll('[data-rail]').forEach((btn) => {
+      btn.addEventListener('click', () => onSelect(Number(btn.getAttribute('data-rail'))));
+    });
+  }
 
   function buildIndex() {
     const lang = getLang();
@@ -71,6 +89,9 @@ export function createHud({ exhibits, onSelect }) {
     el.indexList.querySelectorAll('[data-i]').forEach((btn) => {
       btn.classList.toggle('is-active', Number(btn.getAttribute('data-i')) === i);
     });
+    el.rail.querySelectorAll('[data-rail]').forEach((btn) => {
+      btn.classList.toggle('is-on', Number(btn.getAttribute('data-rail')) === i);
+    });
   }
 
   function openIndex() {
@@ -96,14 +117,16 @@ export function createHud({ exhibits, onSelect }) {
   onLangChange(() => {
     applyStatic();
     buildIndex();
+    buildRail();
     setActive(active);
   });
 
   applyStatic();
   buildIndex();
+  buildRail();
   setActive(0);
 
-  return { setActive, openIndex, closeIndex, buildIndex };
+  return { setActive, openIndex, closeIndex, buildIndex, buildRail };
 }
 
 export default createHud;

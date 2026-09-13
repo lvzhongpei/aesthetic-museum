@@ -1,15 +1,15 @@
 /* ============================================================
-   馆体基础：重置、排印、HUD
-   馆体本身刻意中性——展区氛围由 3D 场景承担，界面层只做导航。
+   馆体基础：重置、排印、HUD、导览轨
+   暗场版本 —— 馆体自身退到接近黑，一切亮度留给展品。
    ============================================================ */
 
 :root {
-  --am-ink: #16161a;
-  --am-paper: #f4f4f2;
+  --am-ink: #f1f0eb;
+  --am-paper: #0a0a0d;
   --am-accent: #e03b2a;
 
-  /* 展板是馆方制式：无论展区多黑，面板永远是浅纸面 + 深墨字。
-     只从展区借来一点点色相，保证每件藏品的颜色都能在板上被看清。 */
+  /* 展板是馆方制式：无论展区多暗，面板永远是浅纸面 + 深墨字。
+     只从展区借一点色相，保证每件藏品的颜色都能在板上被看清。 */
   --am-board: #f4f4f2;
   --am-board-ink: #16161a;
   --am-dur: 620ms;
@@ -19,10 +19,17 @@
   --r-2: 10px;
   --r-3: 18px;
 
+  --glass: color-mix(in srgb, var(--am-paper) 58%, transparent);
+  --glass-hi: color-mix(in srgb, var(--am-paper) 74%, transparent);
+  --hair: color-mix(in srgb, var(--am-ink) 18%, transparent);
+  --hud-op: 0;
+
   --f-sans: Inter, "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI",
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --f-serif: "Noto Serif SC", "Songti SC", Georgia, serif;
   --f-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --blur: saturate(1.4) blur(20px);
 }
 
 *,
@@ -37,7 +44,7 @@ body {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  background: #101012;
+  background: #050506;
   color: var(--am-ink);
   font-family: var(--f-sans);
   -webkit-font-smoothing: antialiased;
@@ -67,7 +74,7 @@ body {
   cursor: grabbing;
 }
 
-/* 门廊过渡：切展区时中段压暗一次 */
+/* 门廊压暗：切展区时中段黑一次 */
 #app::after {
   content: "";
   position: absolute;
@@ -79,30 +86,32 @@ body {
   z-index: 3;
 }
 
-/* ── 通用可点击件 ─────────────────────────────────────────── */
+/* ── 通用可点击件：暗色玻璃 ───────────────────────────────── */
 
 .hud__btn,
 .hud__lang,
 .index__close,
 .sheet__close,
-.sheet__nav {
+.sh-nav__btn {
   font-family: var(--f-sans);
   color: var(--am-ink);
-  background: color-mix(in srgb, var(--am-paper) 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--am-ink) 16%, transparent);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-radius: 999px;
   cursor: pointer;
-  transition: background var(--am-dur), color var(--am-dur), transform 180ms ease;
+  transition: background var(--am-dur), color var(--am-dur), border-color var(--am-dur),
+    transform 180ms ease;
 }
 
 .hud__btn:hover,
 .hud__lang:hover,
 .index__close:hover,
 .sheet__close:hover,
-.sheet__nav:hover {
-  background: color-mix(in srgb, var(--am-paper) 94%, transparent);
+.sh-nav__btn:hover {
+  background: var(--glass-hi);
+  border-color: color-mix(in srgb, var(--am-ink) 34%, transparent);
 }
 
 .hud__btn:active,
@@ -123,7 +132,8 @@ body {
   z-index: 5;
   pointer-events: none;
   color: var(--am-ink);
-  transition: color var(--am-dur);
+  transition: color var(--am-dur), opacity 1400ms ease 300ms;
+  opacity: var(--hud-op, 1);
 }
 
 .hud > * {
@@ -142,19 +152,20 @@ body {
 .hud__brand {
   display: flex;
   align-items: center;
-  gap: 11px;
-  /* 文字浮在 3D 画面上，而画面里可能出现任何颜色的展品。
-     一层与馆体同色的柔光保证它在任何背景上都读得出来。 */
-  text-shadow: 0 0 20px color-mix(in srgb, var(--am-paper) 95%, transparent),
-    0 0 7px color-mix(in srgb, var(--am-paper) 72%, transparent);
+  gap: 12px;
+  /* 文字浮在 3D 画面上，而画面里可能出现任何亮度。一层与馆体同色的柔光
+     保证它在任何背景上都读得出来 —— 暗场里，这层柔光是黑的。 */
+  text-shadow: 0 0 22px color-mix(in srgb, var(--am-paper) 96%, transparent),
+    0 0 8px color-mix(in srgb, var(--am-paper) 78%, transparent);
 }
 
 .hud__mark {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   color: var(--am-accent);
   transition: color var(--am-dur);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--am-accent) 60%, transparent));
 }
 
 .hud__mark svg {
@@ -166,22 +177,29 @@ body {
 .hud__brandtext {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   line-height: 1.2;
 }
 
 .hud__brandtext b {
+  font-family: var(--f-serif);
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.2em;
+}
+
+[data-lang='en'] .hud__brandtext b {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
 .hud__brandtext i {
   font-style: normal;
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: 9px;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .hud__nav {
@@ -210,14 +228,86 @@ body {
 [data-lang='zh'] .hud__lang [data-lang-chip='zh'],
 [data-lang='en'] .hud__lang [data-lang-chip='en'] {
   opacity: 1;
-  background: color-mix(in srgb, var(--am-ink) 10%, transparent);
+  background: color-mix(in srgb, var(--am-ink) 14%, transparent);
 }
 
 .hud__btn {
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   padding: 8px 18px;
+}
+
+/* ── 右侧导览轨：十二个刻度，当前展位展开 ─────────────────── */
+
+.rail {
+  position: absolute;
+  right: var(--hud-pad);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 11px;
+  transition: opacity 520ms ease, color var(--am-dur);
+  opacity: var(--hud-op, 1);
+}
+
+.rail__tick {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  background: none;
+  border: none;
+  padding: 1px 0;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 380ms ease;
+}
+
+.rail__tick:hover {
+  opacity: 0.85;
+}
+
+.rail__tick.is-on {
+  opacity: 1;
+}
+
+.rail__no {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  transition: color var(--am-dur), opacity 380ms;
+}
+
+.rail__bar {
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+  transition: width 620ms cubic-bezier(0.32, 0.72, 0, 1), background var(--am-dur),
+    height 380ms;
+}
+
+.rail__tick.is-on .rail__bar {
+  width: 46px;
+  height: 2px;
+  background: var(--am-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--am-accent) 85%, transparent);
+}
+
+.rail__tick.is-on .rail__no {
+  color: var(--am-accent);
+}
+
+/* 面板展开时收起导览轨，把右侧让给展板 */
+body[data-focus='1'] .rail {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ── 展区标识卡（底部左侧） ───────────────────────────────── */
@@ -228,10 +318,10 @@ body {
   gap: 16px;
   padding: 12px 20px 12px 16px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--am-paper) 74%, transparent);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border: 1px solid color-mix(in srgb, var(--am-ink) 12%, transparent);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--hair);
   transition: background var(--am-dur), color var(--am-dur), border-color var(--am-dur);
   max-width: min(52vw, 420px);
 }
@@ -245,6 +335,7 @@ body {
   color: var(--am-accent);
   transition: color var(--am-dur);
   flex: none;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--am-accent) 55%, transparent);
 }
 
 .roomcard__body {
@@ -258,7 +349,7 @@ body {
   font-family: var(--f-serif);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -266,7 +357,7 @@ body {
 
 [data-lang='en'] .roomcard__name {
   font-family: Inter, sans-serif;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   font-weight: 600;
 }
 
@@ -302,7 +393,7 @@ body {
   height: 4px;
   border-radius: 2px;
   background: var(--am-accent);
-  transition: width var(--am-dur) cubic-bezier(0.4, 0, 0.2, 1), background var(--am-dur);
+  transition: width var(--am-dur) cubic-bezier(0.32, 0.72, 0, 1), background var(--am-dur);
 }
 
 .roomcard__bar em {
@@ -313,7 +404,7 @@ body {
   flex: none;
 }
 
-/* ── HUD 底栏 ─────────────────────────────────────────────── */
+/* ── HUD 底栏提示 ─────────────────────────────────────────── */
 
 .hud__hint {
   display: flex;
@@ -321,18 +412,17 @@ body {
   gap: 7px;
   font-size: 11px;
   letter-spacing: 0.04em;
-  opacity: 0.62;
+  opacity: 0.55;
   transition: opacity 700ms ease;
   flex-wrap: nowrap;
-  text-shadow: 0 0 20px color-mix(in srgb, var(--am-paper) 95%, transparent),
-    0 0 7px color-mix(in srgb, var(--am-paper) 72%, transparent);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--am-paper) 96%, transparent);
 }
 
 .hud__key {
   font-family: var(--f-mono);
   font-size: 10px;
   padding: 2px 6px;
-  border: 1px solid color-mix(in srgb, var(--am-ink) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--am-ink) 28%, transparent);
   border-radius: 4px;
 }
 
@@ -341,11 +431,8 @@ body {
   margin: 0 2px;
 }
 
-/* 一旦观众开始操作，导览提示自行退场——它只在需要的时候出现 */
-body[data-touched] .hud__hint {
-  opacity: 0;
-}
-
+/* 观众一旦开始操作，导览提示就退场 —— 它只在需要的时候出现 */
+body[data-touched] .hud__hint,
 body[data-focus='1'] .hud__hint {
   opacity: 0;
 }
@@ -357,14 +444,14 @@ body[data-focus='1'] .hud__hint {
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(420px, 88vw);
+  width: min(430px, 88vw);
   z-index: 8;
-  background: color-mix(in srgb, var(--am-paper) 92%, transparent);
-  backdrop-filter: blur(26px) saturate(1.3);
-  -webkit-backdrop-filter: blur(26px) saturate(1.3);
-  border-left: 1px solid color-mix(in srgb, var(--am-ink) 12%, transparent);
+  background: color-mix(in srgb, var(--am-paper) 84%, transparent);
+  backdrop-filter: saturate(1.3) blur(34px);
+  -webkit-backdrop-filter: saturate(1.3) blur(34px);
+  border-left: 1px solid var(--hair);
   transform: translateX(101%);
-  transition: transform 460ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 560ms cubic-bezier(0.32, 0.72, 0, 1);
   display: flex;
   flex-direction: column;
   color: var(--am-ink);
@@ -378,21 +465,16 @@ body[data-focus='1'] .hud__hint {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 26px 26px 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--am-ink) 10%, transparent);
+  padding: 28px 26px 18px;
+  border-bottom: 1px solid var(--hair);
 }
 
 .index__head h2 {
   margin: 0;
-  font-size: 15px;
+  font-family: var(--f-serif);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.16em;
-}
-
-.index__head p {
-  margin: 4px 0 0;
-  font-size: 11px;
-  opacity: 0.5;
+  letter-spacing: 0.24em;
 }
 
 .index__close {
@@ -423,15 +505,15 @@ body[data-focus='1'] .hud__hint {
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 200ms;
+  transition: background 220ms;
 }
 
 .index__item:hover {
-  background: color-mix(in srgb, var(--am-ink) 6%, transparent);
+  background: color-mix(in srgb, var(--am-ink) 8%, transparent);
 }
 
 .index__item.is-active {
-  background: color-mix(in srgb, var(--am-accent) 12%, transparent);
+  background: color-mix(in srgb, var(--am-accent) 16%, transparent);
 }
 
 .index__no {
@@ -477,7 +559,7 @@ body[data-focus='1'] .hud__hint {
   position: absolute;
   inset: 0;
   z-index: 7;
-  background: rgba(10, 10, 12, 0.28);
+  background: rgba(0, 0, 0, 0.5);
   opacity: 0;
   pointer-events: none;
   transition: opacity 400ms;
@@ -494,12 +576,12 @@ body[data-focus='1'] .hud__hint {
   position: absolute;
   inset: 0;
   z-index: 20;
-  background: #0e0e10;
+  background: #040405;
   color: #f0efe9;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 900ms ease, visibility 900ms;
+  transition: opacity 1500ms ease, visibility 1500ms;
 }
 
 .boot.is-done {
@@ -509,29 +591,29 @@ body[data-focus='1'] .hud__hint {
 
 .boot__inner {
   text-align: center;
-  width: min(360px, 78vw);
+  width: min(380px, 78vw);
 }
 
 .boot__title {
   font-family: var(--f-serif);
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 500;
-  letter-spacing: 0.28em;
-  text-indent: 0.28em;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
 }
 
 .boot__sub {
-  margin-top: 10px;
-  font-size: 9.5px;
-  letter-spacing: 0.4em;
-  opacity: 0.42;
+  margin-top: 12px;
+  font-size: 9px;
+  letter-spacing: 0.44em;
+  opacity: 0.36;
 }
 
 .boot__bar {
-  margin: 34px auto 14px;
+  margin: 40px auto 16px;
   width: 100%;
   height: 1px;
-  background: rgba(240, 239, 233, 0.18);
+  background: rgba(240, 239, 233, 0.14);
   position: relative;
   overflow: hidden;
 }
@@ -541,24 +623,38 @@ body[data-focus='1'] .hud__hint {
   inset: 0 auto 0 0;
   width: 0%;
   background: #f0efe9;
-  transition: width 260ms ease;
+  box-shadow: 0 0 14px rgba(240, 239, 233, 0.7);
+  transition: width 280ms ease;
 }
 
 .boot__status {
   font-family: var(--f-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  opacity: 0.5;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.45;
 }
 
 /* ── 窄屏 ─────────────────────────────────────────────────── */
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .hud__hint {
     display: none;
   }
+  .rail {
+    right: 14px;
+    gap: 9px;
+  }
+  .rail__bar {
+    width: 12px;
+  }
+  .rail__tick.is-on .rail__bar {
+    width: 30px;
+  }
+  .rail__no {
+    font-size: 8px;
+  }
   .roomcard {
-    max-width: calc(100vw - var(--hud-pad) * 2);
+    max-width: calc(100vw - var(--hud-pad) * 2 - 90px);
     padding: 9px 16px 9px 13px;
     gap: 12px;
   }
@@ -569,9 +665,23 @@ body[data-focus='1'] .hud__hint {
     font-size: 13.5px;
   }
   .roomcard__track {
-    min-width: 60px;
+    min-width: 50px;
   }
   .hud__brandtext i {
     display: none;
+  }
+}
+
+/* 极窄屏：品牌只留标记，避免与右上按钮抢位置 */
+@media (max-width: 560px) {
+  .hud__brandtext {
+    display: none;
+  }
+  .hud__brand {
+    gap: 0;
+  }
+  .hud__mark {
+    width: 28px;
+    height: 28px;
   }
 }

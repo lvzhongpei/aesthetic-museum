@@ -1,5 +1,6 @@
 import { t, tr, getLang } from './i18n.js';
 import { renderDemo } from '../exhibits/frames.js';
+import { dossierFor } from '../data/dossier/index.js';
 
 /**
  * 藏品详情面板。
@@ -115,7 +116,87 @@ export function createSheet({ el, inner, closeBtn, onClose, onPrev, onNext }) {
       .join('');
   }
 
+  /* ── 研究档案的四个块 ── */
+
+  function timeline(d) {
+    if (!d || !d.timeline) return '';
+    return `
+      <section class="sh-sec sh-sec--timeline">
+        <h2>${esc(t('sheet.timeline'))}</h2>
+        <ol class="sh-tl">
+          ${d.timeline
+            .map(
+              (e) => `
+            <li class="sh-tl__row">
+              <span class="sh-tl__year">${esc(e.year)}</span>
+              <p class="sh-tl__text">${esc(tr(e))}</p>
+            </li>`,
+            )
+            .join('')}
+        </ol>
+      </section>`;
+  }
+
+  function works(d) {
+    if (!d || !d.works) return '';
+    return `
+      <section class="sh-sec sh-sec--works">
+        <h2>${esc(t('sheet.works'))}</h2>
+        <div class="sh-works">
+          ${d.works
+            .map(
+              (w) => `
+            <article class="sh-work">
+              <h3>${esc(tr(w.title))}</h3>
+              <p class="sh-work__meta">${esc(w.year)} · ${esc(tr(w.place))}</p>
+              <p class="sh-work__note">${esc(tr(w.note))}</p>
+            </article>`,
+            )
+            .join('')}
+        </div>
+      </section>`;
+  }
+
+  function story(d) {
+    if (!d || !d.story) return '';
+    return `
+      <section class="sh-sec sh-sec--story">
+        <h2>${esc(t('sheet.story'))}</h2>
+        <p class="sh-story">${esc(tr(d.story))}</p>
+      </section>`;
+  }
+
+  function people(ex, d) {
+    const list = (d && d.figures) || ex.figures.map((name) => ({ name, zh: '', role: null, note: null }));
+    return `
+      <section class="sh-sec sh-sec--people">
+        <h2>${esc(t('sheet.figures'))}</h2>
+        <ul class="sh-people">
+          ${list
+            .map(
+              (f) => `
+            <li class="sh-person">
+              <div class="sh-person__head">
+                <b>${esc(f.zh || f.name)}</b>
+                <i>${esc(f.name)}</i>
+                ${f.role ? `<span>${esc(tr(f.role))}</span>` : ''}
+              </div>
+              ${f.note ? `<p class="sh-person__note">${esc(tr(f.note))}</p>` : ''}
+            </li>`,
+            )
+            .join('')}
+        </ul>
+      </section>`;
+  }
+
+  /**
+   * 展板的阅读顺序是有意的：
+   * 先给结果（转译界面）→ 再给来源（源流派）→ 发展（编年）、证据（案例）、
+   * 一个能记住的故事（轶事）→ 规则与边界（失效条件）→ 方法（转译）→
+   * 人（代表人物）→ 可以拿走的东西（色板与 token）。
+   */
   function markup(ex) {
+    const d = dossierFor(ex.id);
     return `
       ${header(ex)}
       <section class="sh-sec sh-sec--demo">
@@ -126,6 +207,9 @@ export function createSheet({ el, inner, closeBtn, onClose, onPrev, onNext }) {
         <h2>${esc(t('sheet.source'))}</h2>
         <p class="sh-p">${esc(tr(ex.source))}</p>
       </section>
+      ${timeline(d)}
+      ${works(d)}
+      ${story(d)}
       <section class="sh-sec">
         <h2>${esc(t('sheet.rules'))}</h2>
         <ol class="sh-rules">
@@ -140,6 +224,7 @@ export function createSheet({ el, inner, closeBtn, onClose, onPrev, onNext }) {
         <h2>${esc(t('sheet.translation'))}</h2>
         <p class="sh-p">${esc(tr(ex.translation))}</p>
       </section>
+      ${people(ex, d)}
       <section class="sh-sec">
         <h2>${esc(t('sheet.palette'))}</h2>
         <div class="sh-swatches">${swatches(ex)}</div>
@@ -147,12 +232,6 @@ export function createSheet({ el, inner, closeBtn, onClose, onPrev, onNext }) {
       <section class="sh-sec">
         <h2>${esc(t('sheet.tokens'))}</h2>
         ${tokensTable(ex)}
-      </section>
-      <section class="sh-sec">
-        <h2>${esc(t('sheet.figures'))}</h2>
-        <div class="sh-chips">
-          ${ex.figures.map((f) => `<span class="sh-chip">${esc(f)}</span>`).join('')}
-        </div>
       </section>
       <nav class="sh-nav">
         <button class="sh-nav__btn" type="button" data-prev>← ${esc(t('sheet.prev'))}</button>

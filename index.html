@@ -64,6 +64,9 @@
         </nav>
       </header>
 
+      <!-- 右侧导览轨：十二个刻度，当前展位展开 -->
+      <nav class="rail" id="rail" aria-label="exhibit rail"></nav>
+
       <!-- 底部：展区标识 + 导览 -->
       <footer class="hud hud--bottom">
         <div class="roomcard" id="roomPlate">
@@ -79,13 +82,13 @@
         </div>
 
         <div class="hud__hint" id="hintBar">
-          <span class="hud__key">拖拽</span><span data-i18n="hint.drag">环绕</span>
+          <span class="hud__key">滑动</span><span data-i18n="hint.swipe">切换藏品</span>
+          <span class="hud__sep">·</span>
+          <span class="hud__key">点击</span><span data-i18n="hint.click">展开</span>
           <span class="hud__sep">·</span>
           <span class="hud__key">滚轮</span><span data-i18n="hint.wheel">推拉</span>
           <span class="hud__sep">·</span>
-          <span class="hud__key">点击</span><span data-i18n="hint.click">观看藏品</span>
-          <span class="hud__sep">·</span>
-          <span class="hud__key">←→</span><span data-i18n="hint.arrows">切换展区</span>
+          <span class="hud__key">←→</span><span data-i18n="hint.arrows">切换</span>
         </div>
       </footer>
 

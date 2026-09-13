@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B0B0C" />
+    <title>审美风格博物馆 · A Museum of Aesthetic Styles</title>
+    <meta
+      name="description"
+      content="十二件跨媒介视觉流派的藏品，从包豪斯到千禧蒸汽波。每一件都附源流派史料、数字化转译演示与可复制的设计 token。"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="审美风格博物馆 · A Museum of Aesthetic Styles" />
+    <meta
+      property="og:description"
+      content="十二件跨媒介视觉流派的数字化档案。每一件都拆成两层：它原本是什么，以及被翻译成一块界面之后是什么样。"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- 字体走异步加载：绝不让外部 CDN 阻塞首帧。
+         字体没到就用系统字体先渲染，到了再换。 -->
+    <link
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Mono:wght@300;400;500&display=swap"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Mono:wght@300;400;500&display=swap"
+      />
+    </noscript>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="stage"></canvas>
+
+      <!-- 馆体 HUD -->
+      <header class="hud hud--top">
+        <div class="hud__brand">
+          <span class="hud__mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M16 3 L29 26 H3 Z" stroke="currentColor" stroke-width="1.4" />
+              <circle cx="16" cy="19" r="4.4" stroke="currentColor" stroke-width="1.4" />
+            </svg>
+          </span>
+          <span class="hud__brandtext">
+            <b data-i18n="museum.name">审美风格博物馆</b>
+            <i data-i18n="museum.sub">跨媒介视觉流派档案</i>
+          </span>
+        </div>
+
+        <nav class="hud__nav" aria-label="gallery navigation">
+          <button class="hud__lang" id="langToggle" type="button" aria-label="switch language">
+            <span data-lang-chip="zh">中</span>
+            <span data-lang-chip="en">EN</span>
+          </button>
+          <button class="hud__btn" id="indexToggle" type="button" aria-expanded="false">
+            <span data-i18n="nav.index">索引</span>
+          </button>
+        </nav>
+      </header>
+
+      <!-- 底部：展区标识 + 导览 -->
+      <footer class="hud hud--bottom">
+        <div class="roomcard" id="roomPlate">
+          <span class="roomcard__no" id="roomNo">01</span>
+          <div class="roomcard__body">
+            <b class="roomcard__name" id="roomName">包豪斯</b>
+            <span class="roomcard__meta" id="roomMeta">建筑 · 平面 · 产品 · 1919–1933</span>
+            <span class="roomcard__bar">
+              <span class="roomcard__track"><i id="progressFill"></i></span>
+              <em id="progressTotal">12</em>
+            </span>
+          </div>
+        </div>
+
+        <div class="hud__hint" id="hintBar">
+          <span class="hud__key">拖拽</span><span data-i18n="hint.drag">环绕</span>
+          <span class="hud__sep">·</span>
+          <span class="hud__key">滚轮</span><span data-i18n="hint.wheel">推拉</span>
+          <span class="hud__sep">·</span>
+          <span class="hud__key">点击</span><span data-i18n="hint.click">观看藏品</span>
+          <span class="hud__sep">·</span>
+          <span class="hud__key">←→</span><span data-i18n="hint.arrows">切换展区</span>
+        </div>
+      </footer>
+
+      <!-- 索引抽屉 -->
+      <aside class="index" id="indexDrawer" aria-hidden="true">
+        <div class="index__head">
+          <h2 data-i18n="nav.index">索引</h2>
+          <button class="index__close" id="indexClose" type="button" aria-label="close">✕</button>
+        </div>
+        <ol class="index__list" id="indexList"></ol>
+      </aside>
+      <div class="index__scrim" id="indexScrim"></div>
+
+      <!-- 藏品详情面板 -->
+      <section class="sheet" id="sheet" aria-hidden="true">
+        <button class="sheet__close" id="sheetClose" type="button" aria-label="close">✕</button>
+        <div class="sheet__inner" id="sheetInner"></div>
+      </section>
+
+      <!-- 载入屏 -->
+      <div class="boot" id="boot">
+        <div class="boot__inner">
+          <div class="boot__title" data-i18n="museum.name">审美风格博物馆</div>
+          <div class="boot__sub" data-i18n="museum.subEn">A MUSEUM OF AESTHETIC STYLES</div>
+          <div class="boot__bar"><i id="bootFill"></i></div>
+          <div class="boot__status" id="bootStatus" data-i18n="boot.loading">正在布置展厅…</div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

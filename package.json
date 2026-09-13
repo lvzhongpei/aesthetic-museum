@@ -1,0 +1,18 @@
+{
+  "name": "aesthetic-museum",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "审美风格博物馆 — 十二件跨媒介视觉流派的数字化档案（A Museum of Aesthetic Styles）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

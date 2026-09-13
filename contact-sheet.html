@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>接触印相 · 十二块转译界面</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Mono:wght@300;400;500&display=swap"
+    />
+    <style>
+      /* 仅用于本地审阅：一张接触印相，把 12 块界面并排看一遍 */
+      body {
+        margin: 0;
+        padding: 34px;
+        background: #101012;
+        font-family: Inter, "Noto Sans SC", sans-serif;
+      }
+      .sheet-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 26px;
+        align-items: start;
+      }
+      .cell {
+      }
+      .cell__head {
+        color: #f0efe9;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .cell__head i {
+        font-style: normal;
+        font-family: "DM Mono", monospace;
+        color: #e03b2a;
+        font-size: 10px;
+      }
+      .cell__body {
+        background: #f4f4f2;
+        border-radius: 14px;
+        padding: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet-grid" id="grid"></div>
+    <script type="module">
+      import './src/styles/exhibits.css';
+      import { EXHIBITS } from './src/data/exhibits.js';
+      import { renderDemo } from './src/exhibits/frames.js';
+
+      const params = new URLSearchParams(location.search);
+      const lang = params.get('lang') === 'en' ? 'en' : 'zh';
+      const grid = document.getElementById('grid');
+      grid.innerHTML = EXHIBITS.map(
+        (ex) => `
+        <div class="cell">
+          <div class="cell__head"><i>${ex.no}</i>${ex.name[lang]} · ${ex.demo}</div>
+          <div class="cell__body">${renderDemo(ex, lang)}</div>
+        </div>`,
+      ).join('');
+    </script>
+  </body>
+</html>

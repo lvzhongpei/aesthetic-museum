@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>审美风格博物馆 · 选题报告 — 垂直展塔与新增 20 件藏品</title>
+<style>
+  :root{
+    --ink:#16161a; --ink2:rgba(22,22,26,.72); --ink3:rgba(22,22,26,.5);
+    --paper:#FBFAF7; --line:rgba(22,22,26,.12); --accent:#B03A2E;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:15px;line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1080px;margin:0 auto;padding:72px 40px 120px}
+
+  /* ── 封面 ── */
+  .cover{padding-bottom:44px;border-bottom:3px solid var(--ink)}
+  .cover__kicker{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--accent);margin:0 0 20px}
+  .cover h1{margin:0;font-family:var(--serif);font-size:40px;font-weight:600;letter-spacing:.02em;line-height:1.24}
+  .cover h1 small{display:block;font-family:var(--sans);font-size:13px;letter-spacing:.16em;font-weight:500;color:var(--ink3);margin-top:12px;text-transform:uppercase}
+  .cover__lede{margin:26px 0 0;font-family:var(--serif);font-size:16.5px;line-height:2;color:var(--ink2);max-width:46em}
+  .cover__meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding:5px 11px;border:1px solid var(--line);border-radius:999px;color:var(--ink2)}
+
+  /* ── 通用 ── */
+  h2{
+    font-family:var(--serif);font-size:23px;font-weight:600;letter-spacing:.02em;
+    margin:76px 0 6px;padding-top:22px;border-top:1px solid var(--line);
+  }
+  h2 .num{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.16em;display:block;margin-bottom:9px;font-weight:500}
+  h3{font-family:var(--serif);font-size:18px;font-weight:600;margin:34px 0 8px}
+  h4{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:26px 0 8px}
+  p{margin:0 0 13px}
+  ul,ol{margin:0 0 13px;padding-left:1.25em}
+  li{margin-bottom:6px}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:12.5px;background:rgba(22,22,26,.055);padding:1px 5px;border-radius:3px}
+  strong{font-weight:600}
+  em{font-style:normal;color:var(--ink3);font-family:var(--mono);font-size:12.5px;letter-spacing:.04em}
+
+  .callout{
+    margin:24px 0;padding:20px 22px;border-radius:8px;
+    background:rgba(176,58,46,.055);border-left:3px solid var(--accent);
+  }
+  .callout p:last-child{margin-bottom:0}
+  .callout__t{font-weight:600;margin-bottom:6px}
+
+  table{width:100%;border-collapse:collapse;margin:18px 0 22px;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:600;font-size:12px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;white-space:nowrap}
+  td:first-child{white-space:nowrap}
+  tbody tr:hover{background:rgba(22,22,26,.025)}
+
+  /* ── 目录 ── */
+  .toc{margin:34px 0 0;padding:22px 24px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .toc ol{margin:0;padding-left:1.4em;columns:2;column-gap:36px}
+  .toc li{margin-bottom:7px;font-size:13.5px}
+
+  /* ── 藏品卡 ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;margin:22px 0 8px}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:20px 20px 18px;display:flex;flex-direction:column;
+  }
+  .card__top{display:flex;align-items:baseline;gap:10px;margin-bottom:3px}
+  .card__no{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;flex:none}
+  .card__name{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.3}
+  .card__name em{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.1em;color:var(--ink3);margin-top:3px}
+  .card__meta{font-size:11.5px;color:var(--ink3);margin:9px 0 12px;letter-spacing:.02em}
+  .card__thesis{font-family:var(--serif);font-size:14px;line-height:1.9;color:var(--ink2);margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .card__pal{display:flex;gap:0;border-radius:5px;overflow:hidden;margin:0 0 14px;height:26px}
+  .card__pal i{flex:1}
+  .facts{margin:0;font-size:12.8px;line-height:1.78}
+  .facts dt{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-top:11px;font-weight:600}
+  .facts dd{margin:3px 0 0;color:var(--ink2)}
+  .facts dd:first-of-type{margin-top:0}
+  .facts ul{margin:0;padding-left:1.1em}
+  .facts li{margin-bottom:3px}
+  .warn{color:#8E2F25}
+
+  /* ── 塔示意 ── */
+  .tower{
+    display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:start;
+    margin:26px 0 10px;
+  }
+  .tower__fig{
+    width:132px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0a0a0d;
+    display:flex;flex-direction:column;
+  }
+  .tower__fig i{display:block;height:11px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .tower__fig i.on{background:linear-gradient(90deg,#E03B2A,#B03A2E);height:16px}
+
+  footer{margin-top:80px;padding-top:22px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);font-family:var(--mono);letter-spacing:.04em}
+
+  @media (max-width:900px){
+    .page{padding:44px 20px 90px}
+    .cover h1{font-size:28px}
+    .toc ol{columns:1}
+    .tower{grid-template-columns:1fr}
+    .grid{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff}
+    .card{break-inside:avoid}
+    h2{break-after:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════ 封面 ═══════════════ -->
+<header class="cover">
+  <p class="cover__kicker">选题报告 · 请审阅后拍板</p>
+  <h1>
+    垂直展塔与新增 20 件藏品
+    <small>审美风格博物馆 · 空间重构与选题提案</small>
+  </h1>
+  <p class="cover__lede">
+    两条需求放在一起看，会撞上一个硬约束：现在的展厅是半径 12.2 米的环，12 件展品每件占 30°；
+    要放 30 件，每件只剩 12°，而帧宽 2.92 米会直接互相重叠。
+    所以「增加到 30 件」这一步必然要换空间形态。既然要换，就把它一次换成与竖向标尺同向的那一种——
+    你要的「统一操作逻辑」才能真的成立，而不是只换个手势方向。
+  </p>
+  <div class="cover__meta">
+    <span class="tag">垂直展塔</span>
+    <span class="tag">手势 · 空间 · 标尺 三者同向</span>
+    <span class="tag">32 件 · 全深度</span>
+    <span class="tag">分轮交付</span>
+    <span class="tag">本报告不含代码改动</span>
+  </div>
+
+  <nav class="toc">
+    <ol>
+      <li><a href="#decision">需要你拍板的五件事</a></li>
+      <li><a href="#space">空间重构：垂直展塔</a></li>
+      <li><a href="#scale">规模与分轮交付</a></li>
+      <li><a href="#picks">新增 20 件逐条选题</a></li>
+      <li><a href="#order">排列顺序与分章</a></li>
+      <li><a href="#risk">风险与取舍</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ═══════════════ 1 决策 ═══════════════ -->
+<h2 id="decision"><span class="num">01</span>需要你拍板的五件事</h2>
+
+<p>报告读完请针对下面五条给结论。前三条你已经选过，这里是把它们落成可执行的定义；后两条是报告中新出现的。</p>
+
+<table>
+  <thead><tr><th>#</th><th>事项</th><th>当前提案</th><th>需要你确认</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td><td>空间形态</td>
+      <td>垂直展塔：展品挂在塔内一面高墙上，相机沿垂直方向升降。上下滑动 = 上下移动 = 右侧标尺，三者同向。</td>
+      <td>确认 / 换成垂直卷轴（放弃 3D 空间）/ 换成别的</td>
+    </tr>
+    <tr>
+      <td>2</td><td>新增内容深度</td>
+      <td>32 件全部全深度：源流派 + 4 条规则 + 失效条件 + 转译演示 + 编年史 + 典型案例 + 代表人物 + 轶事，全中英双语。</td>
+      <td>确认（代价见 §03）/ 改回「12 件全深度 + 20 件中深度」</td>
+    </tr>
+    <tr>
+      <td>3</td><td>新增清单</td>
+      <td>下表 20 件，总计 32 件。</td>
+      <td>全盘接受 / 换掉其中几件 / 再加</td>
+    </tr>
+    <tr>
+      <td>4</td><td>滑动方向</td>
+      <td><strong>手指上滑 = 下一件</strong>，标尺当前刻度随之向下移动。即「内容跟着手指走」，和手机上滑列表完全一致。</td>
+      <td>确认 / 反过来（上滑 = 上一件）</td>
+    </tr>
+    <tr>
+      <td>5</td><td>排列与分章</td>
+      <td>按起点年代排列，并分成四章（前现代 / 现代主义 / 战后与反叛 / 数字时代），章节显示在标尺上。</td>
+      <td>确认 / 只按年代不设章 / 其他分法</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__t">关于第 4 条，我要把两种约定说清楚，因为它直接影响手感</p>
+  <p>
+    <strong>A · 内容跟着手指走（提案）</strong>——手指上滑，塔向上移动，原本在你下方的展品移进视野，这是「下一件」；同时你在塔里的位置相对向下，所以标尺刻度向下。
+    手势向上、标尺向下。这是所有手机列表的约定，用户零学习成本。
+  </p>
+  <p>
+    <strong>B · 标尺跟着手指走</strong>——手指上滑，标尺刻度向上（等于「上一件」）；或者手指下滑 = 下一件、标尺刻度向下。
+    手势与标尺同号，但内容会与手指反向运动，读起来像「拖动纸张时纸往反方向跑」，会别扭。
+  </p>
+  <p>我推荐 A。这是一行代码的开关，你选哪个都行，但请明确告诉我。</p>
+</div>
+
+<!-- ═══════════════ 2 空间 ═══════════════ -->
+<h2 id="space"><span class="num">02</span>空间重构：垂直展塔</h2>
+
+<div class="tower">
+  <div class="tower__fig">
+    <!-- 32 格示意：第 5 格为当前 -->
+    <i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+  <div>
+    <h3 style="margin-top:0">塔的形状</h3>
+    <p>
+      观众站在一条极窄的竖直空间里，面向一面高墙。展品沿这面墙垂直排列，间距约 4.6 米。
+      相机只沿垂直轴升降，始终正视当前展品；脚下有地板、对面有墙、头顶有天花，它们会随着你升降而进入或离开视野——
+      这就是「在塔里」而不是「在看一张卷轴」的区别。
+    </p>
+    <p>
+      32 件 × 4.6 米 ≈ <strong>147 米</strong>的有效高度。上下两端都交给雾，你永远看不到塔的尽头。
+      这一条是刻意的：无限延伸的垂直空间本身就有压迫感与仪式感，和「一座馆」的气质对得上。
+    </p>
+
+    <h4>必须保留的东西</h4>
+    <ul>
+      <li>深色抛光石材地面的真实反射（<code>Reflector</code>）——塔里同样成立，而且垂直空间会让倒影拉得更长</li>
+      <li>每件展品自带的色光：切到哪一件，整条塔的光色就变成那个流派的颜色</li>
+      <li>泛光辉光、浮尘粒子、电影调色（暗角 / 颗粒 / 色散）、展框下的 LED 细线</li>
+      <li>金属边框 + 程序生成环境贴图带来的反射层次</li>
+    </ul>
+
+    <h4>必须重做的部分</h4>
+    <ul>
+      <li><strong>空间几何</strong>：圆柱环 → 竖直长方体塔（地板、天花、三面墙）</li>
+      <li><strong>展品布局</strong>：环形排布 → 线性堆叠</li>
+      <li><strong>相机与控制</strong>：环心轨道旋转 → 垂直升降 + 一个可选的「侧身看」小角度</li>
+      <li><strong>氛围映射</strong>：色板推导逻辑可复用，但「空气浓度」「洗墙光梯度」需要按塔的尺度重新标定</li>
+      <li><strong>标尺</strong>：12 刻度 → 32 刻度 + 分章；移动端需要窗口化（只显示当前 ± 6）</li>
+    </ul>
+  </div>
+</div>
+
+<h3>手势与标尺如何真正同向</h3>
+<table>
+  <thead><tr><th>操作</th><th>塔的动作</th><th>你看到</th><th>标尺</th></tr></thead>
+  <tbody>
+    <tr><td>手指上滑（一次）</td><td>塔向上移动一格</td><td>下一件展品从下方移入视野</td><td>当前刻度向下移动一格</td></tr>
+    <tr><td>手指下滑（一次）</td><td>塔向下移动一格</td><td>上一件展品从上方移入视野</td><td>当前刻度向上移动一格</td></tr>
+    <tr><td>小幅滑动（&lt; 46px）</td><td>不动</td><td>仍停在当前展品</td><td>不动</td></tr>
+    <tr><td>滚轮 / 双指</td><td>推近或退远（靠近墙面）</td><td>展品放大或缩小</td><td>不动</td></tr>
+    <tr><td>点击展品</td><td>——</td><td>展开藏品面板</td><td>不动</td></tr>
+    <tr><td>点击标尺某一格</td><td>塔移动到该格</td><td>直接跳到那件藏品</td><td>跳到该刻度</td></tr>
+  </tbody>
+</table>
+
+<p>
+  规则与现在一致：<strong>一次滑动 = 一件</strong>，拖多远都只走一格，松手后镜头缓动停稳。
+  唯一变化是轴从横向换成了竖向。
+</p>
+
+<!-- ═══════════════ 3 规模 ═══════════════ -->
+<h2 id="scale"><span class="num">03</span>规模与分轮交付</h2>
+
+<p>你选了「32 件全部全深度」。我先把代价摊开，你再决定要不要维持这个选择。</p>
+
+<table>
+  <thead><tr><th>项目</th><th>现有</th><th>新增</th><th>合计</th></tr></thead>
+  <tbody>
+    <tr><td>藏品条目</td><td>12 件</td><td>20 件</td><td>32 件</td></tr>
+    <tr><td>主档案文本（源流派 / 规则 / 失效条件 / 转译说明）</td><td>已完成</td><td>约 2.2 万字</td><td>约 3.5 万字</td></tr>
+    <tr><td>研究档案文本（编年 / 案例 / 人物 / 轶事）</td><td>已完成</td><td>约 3.8 万字</td><td>约 6 万字</td></tr>
+    <tr><td>中英双语</td><td>已完成</td><td>上述数字的英文对应部分</td><td>合计文本量约 12 万字符</td></tr>
+    <tr><td>程序生成的展品画面</td><td>12 幅</td><td>20 幅</td><td>32 幅</td></tr>
+    <tr><td>数字化转译界面（真 DOM/CSS）</td><td>12 块</td><td>20 块</td><td>32 块</td></tr>
+    <tr><td>色板与设计 token</td><td>12 套</td><td>20 套</td><td>32 套</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__t">诚实结论：这一轮交不完</p>
+  <p>
+    20 件 × 四块内容 × 双语，是约 <strong>6 万字新增文本</strong>外加 20 幅画面与 20 块界面。
+    如果硬塞进一轮，我能交出来的会是一份「量够但每件都变薄」的东西——那恰恰是你前一条反馈要修的问题。
+  </p>
+  <p>所以建议分五轮，每轮结束都是一个<strong>可以上线、可以看的完整状态</strong>，而不是半成品：</p>
+</div>
+
+<table>
+  <thead><tr><th>轮次</th><th>内容</th><th>交付后可验证的东西</th></tr></thead>
+  <tbody>
+    <tr><td>第 1 轮</td><td>垂直展塔空间重构 + 现有 12 件迁移 + 手势/标尺/分章改造</td><td>塔可跑，12 件完整，手感与方向可当场判定</td></tr>
+    <tr><td>第 2 轮</td><td>新增第 01–05 件（含全深度档案）</td><td>17 件</td></tr>
+    <tr><td>第 3 轮</td><td>新增第 06–10 件</td><td>22 件</td></tr>
+    <tr><td>第 4 轮</td><td>新增第 11–15 件</td><td>27 件</td></tr>
+    <tr><td>第 5 轮</td><td>新增第 16–20 件 + 全塔复核（性能、移动端、可达性）</td><td>32 件完成</td></tr>
+  </tbody>
+</table>
+
+<p>
+  每一轮我都推进 GitHub 并等 Pages 部署成功，你可以在线上直接看。
+  <strong>如果第 1 轮的手感不对，后面四轮就不用开始了</strong>——这是分轮最重要的好处。
+</p>
+
+<!-- ═══════════════ 4 选题 ═══════════════ -->
+<h2 id="picks"><span class="num">04</span>新增 20 件逐条选题</h2>
+
+<p>
+  每件都给出：一句话主张、源流派是什么、三个可考的史料锚点、<strong>转译方案</strong>（把它翻译成哪一块界面、抓手是什么）、
+  以及<strong>失效预判</strong>（它在发光屏幕上最可能怎么崩——这是每件藏品里最有用的一段），最后是与现有 12 件的区分度。
+</p>
+
+<h3>前现代与手工艺</h3>
+<div class="grid">
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">13</span><span class="card__name">巴洛克<em>Baroque</em></span></div>
+    <p class="card__meta">1600–1750 · 意大利 / 欧洲 · 建筑 · 绘画 · 音乐</p>
+    <p class="card__thesis">「用动势与光线把观者拉进画面，而不是让观者旁观。」</p>
+    <div class="card__pal"><i style="background:#C9A227"></i><i style="background:#6B1F2A"></i><i style="background:#F0E6D2"></i><i style="background:#1A1614"></i><i style="background:#7C6A9C"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>罗马耶稣会教堂立面 (1575–84，维尼奥拉)</li>
+        <li>贝尼尼《圣特雷莎的狂喜》(1647–52)</li>
+        <li>凡尔赛镜厅 (1678，阿尔杜安-芒萨尔)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>仪表盘与数据叙事页。抓手：以对角动势线组织版面，单一光源制造戏剧焦点，高对比明暗代替分隔线。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上「戏剧性」会迅速退化成俗气的金色渐变与发光阴影。巴洛克的动势依赖真实的空间曲线，二维里只靠斜线会变成一堆廉价的倾斜卡片。</dd>
+      <dt>与现有区别</dt>
+      <dd>装饰艺术（03）是冷、对称、几何；巴洛克是热的、对角的、有机的。两者都用金色，但一个克制一个放纵。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">14</span><span class="card__name">新艺术运动<em>Art Nouveau</em></span></div>
+    <p class="card__meta">1890–1910 · 比利时 / 法国 / 奥地利 · 建筑 · 平面 · 珠宝</p>
+    <p class="card__thesis">「让线条自己生长——装饰从结构里长出来，而不是贴上去。」</p>
+    <div class="card__pal"><i style="background:#6B8E4E"></i><i style="background:#C89B3C"></i><i style="background:#E8DCC8"></i><i style="background:#4A3B52"></i><i style="background:#A2412F"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>霍塔旅馆 (1893，布鲁塞尔) —— 铸铁柱被做成植物茎秆</li>
+        <li>吉马尔设计的巴黎地铁入口 (1900)</li>
+        <li>穆夏的海报与「新艺术」女性轮廓 (1890s)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>品牌页与邀请页。抓手：一条连续曲线作为版面骨架承担分隔与引导——曲线不只是装饰，它是结构。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">曲线一旦脱离结构就变成廉价花纹，矢量曲线尤其如此。它与现代响应式网格天然冲突：曲线不能被网格约束，网格一压缩曲线就断。</dd>
+      <dt>与现有区别</dt>
+      <dd>与装饰艺术（03）同为 20 世纪初，但装饰艺术是机器时代的几何，新艺术是手工业的有机。两者摆在一起正好是那个时代的两条路。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">15</span><span class="card__name">伊斯兰几何<em>Islamic Geometric Pattern</em></span></div>
+    <p class="card__meta">8 世纪至今 · 中东 / 波斯 / 安达卢西亚 · 建筑 · 书籍 · 织物</p>
+    <p class="card__thesis">「用有限的图形，把无限说清楚。」</p>
+    <div class="card__pal"><i style="background:#1B4A6B"></i><i style="background:#C9A227"></i><i style="background:#0E2A3A"></i><i style="background:#F0E6D2"></i><i style="background:#2E6B5A"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>阿尔罕布拉宫狮庭灰泥雕饰 (14 世纪)</li>
+        <li>伊斯法罕国王清真寺穹顶 (1611–)</li>
+        <li>大马士革清真寺的几何密铺</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>安全感强的板块与背景。抓手：girih 五重对称密铺可无限重复而不出现接缝——这恰好是「平铺滚动背景」的数学解。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上重复图案极易被当成纹理填充，从结构降级为背景。以像素渲染的密铺在缩放时会产生摩尔纹，几何的精度感直接丢失。</dd>
+      <dt>与现有区别</dt>
+      <dd>这是本馆唯一的非具象、非西方、以数学为内核的体系。它回答的是别的流派都没回答的问题：无限如何被排版。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">16</span><span class="card__name">文人画<em>Chinese Literati Painting</em></span></div>
+    <p class="card__meta">宋元–清 · 中国 · 水墨 · 手卷 · 题跋</p>
+    <p class="card__thesis">「画的不是山，是画者的心；留白不是空，是呼吸与距离。」</p>
+    <div class="card__pal"><i style="background:#2B2B28"></i><i style="background:#E8E4D8"></i><i style="background:#8A9280"></i><i style="background:#B8A88A"></i><i style="background:#6B4A3A"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>苏轼的文人画论（「论画以形似，见与儿童邻」）</li>
+        <li>倪瓒《容膝斋图》(1372) —— 极简的一河两岸构图</li>
+        <li>董其昌的南北宗论 (17 世纪) —— 把审美判断写成谱系</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>长文阅读页。抓手：极度不均衡的构图（主体偏左下、右上大量留白），墨色浓淡承担层级，题跋的位置本身就是版式。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">留白在屏幕上会被当成「没加载完」。水墨的浓淡层次在低色深或高亮屏上会整体塌掉，只剩几个灰块。</dd>
+      <dt>与现有区别</dt>
+      <dd>侘寂（07）是日本茶道对「不完美」的处理；文人画是中国士大夫对「不相似」的处理。前者关于时间，后者关于意图。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">17</span><span class="card__name">波斯细密画<em>Persian Miniature</em></span></div>
+    <p class="card__meta">13–17 世纪 · 伊朗 / 中亚 · 书籍插图 · 手抄本</p>
+    <p class="card__thesis">「画面不受单一视点约束——重要的事情，画大一点。」</p>
+    <div class="card__pal"><i style="background:#1E3A6B"></i><i style="background:#C4452F"></i><i style="background:#E3B23C"></i><i style="background:#2E6B4A"></i><i style="background:#F2E6CE"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>《列王纪》大蒙古版 (1330s)</li>
+        <li>大不里士画派为塔赫马斯普制作的《列王纪》(1520s)</li>
+        <li>贝赫扎德的《卡利拉与迪木乃》插图 (15 世纪)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>信息密集型卡片与仪表。抓手：同屏出现多个视点，元素的尺寸由重要性而非距离决定——这正是信息层级的一种解。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">它与写实透视训练出的观看习惯直接冲突，屏幕上会被读成「比例画错了」而不是「刻意为之」。需要非常明确地给出「这是刻意的」信号，否则整块界面看起来只是业余。</dd>
+      <dt>与现有区别</dt>
+      <dd>浮世绘（08）是单一视点加硬轮廓；细密画是多视点加满幅装饰。一个是印刷品的逻辑，一个是手抄本的逻辑。</dd>
+    </dl>
+  </article>
+
+</div>
+
+<h3>现代主义与它的同期</h3>
+<div class="grid">
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">18</span><span class="card__name">构成主义<em>Constructivism</em></span></div>
+    <p class="card__meta">1915–1930s · 俄国 · 平面 · 建筑 · 舞台</p>
+    <p class="card__thesis">「艺术应当是一把工具，对角线就是它的握柄。」</p>
+    <div class="card__pal"><i style="background:#D62828"></i><i style="background:#111111"></i><i style="background:#F2F0EB"></i><i style="background:#8A8A8A"></i><i style="background:#1B3A6B"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>塔特林《第三国际纪念塔》方案 (1919)</li>
+        <li>李西茨基《用红色楔子击溃白色》(1919)</li>
+        <li>罗德琴科的宣传版面与摄影蒙太奇 (1920s)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>立场型页面与数据主张页。抓手：以对角线为主轴，红黑两色，超大字号与几何块面互相压制。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">对角线在长页面里会打断阅读节奏，且红黑的强对立容易被读成「警告」而非「立场」。它需要一个明确要主张的东西，否则只是倾斜的版式。</dd>
+      <dt>与现有区别</dt>
+      <dd>风格派（02）是正交网格的静；构成主义是对角线的动。两者同代、同源构成，但一个在荷兰做家具，一个在俄国做宣传。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">19</span><span class="card__name">至上主义<em>Suprematism</em></span></div>
+    <p class="card__meta">1915– · 俄国 · 绘画</p>
+    <p class="card__thesis">「把绘画减到零——剩下的只有感受本身。」</p>
+    <div class="card__pal"><i style="background:#141414"></i><i style="background:#F4F2EC"></i><i style="background:#D33A2C"></i><i style="background:#2A2A6B"></i><i style="background:#B9B4A8"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>马列维奇《黑方块》(1915) —— 挂在「红角」的位置</li>
+        <li>《白上之白》(1918)</li>
+        <li>李西茨基的《普朗恩》系列 (1919–)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>启动页与空状态页。抓手：一个倾斜的纯色方块就是整块版面；没有别的元素，因此它的位置、大小、倾角必须精确到像素。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">极端克制在屏幕上会变成「没做完」。缺少材质与真实尺寸时，一个方块只是一个方块——它的全部力量来自「减法本身是经过计算的」这个信号，而这个信号在二维里很容易丢。</dd>
+      <dt>与现有区别</dt>
+      <dd>与极简主义（20）的区别：至上主义是关于感受的形而上学，极简主义是关于物件的本体论。一个问「剩下什么」，一个说「就是它自己」。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">20</span><span class="card__name">超现实主义<em>Surrealism</em></span></div>
+    <p class="card__meta">1924–1950s · 法国 / 西班牙 · 绘画 · 影像 · 平面</p>
+    <p class="card__thesis">「把两件不该放在一起的东西放在一起，让逻辑失效。」</p>
+    <div class="card__pal"><i style="background:#2E4A7D"></i><i style="background:#E8C547"></i><i style="background:#7A5C3E"></i><i style="background:#1B1B22"></i><i style="background:#C24A6A"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>达利《记忆的永恒》(1931)</li>
+        <li>马格利特《图像的叛逆》(1929) —— 画一只烟斗并写下「这不是一只烟斗」</li>
+        <li>恩斯特的拼贴小说《百头女人》(1929)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>错误页、404、加载页。抓手：熟悉的对象出现在错误的位置或错误的比例——界面出错时，正是逻辑最该失效的时候。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上「错置」极易变成随机拼贴。错置要成立，必须先有一个可靠、写实的基准物，否则观众不知道什么东西被放错了位置。</dd>
+      <dt>与现有区别</dt>
+      <dd>本馆唯一的「叙事型」流派——别的流派都在讲形式，超现实主义讲的是观看者的心理。</dd>
+    </dl>
+  </article>
+
+</div>
+
+<h3>战后与反叛</h3>
+<div class="grid">
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">21</span><span class="card__name">欧普艺术<em>Op Art</em></span></div>
+    <p class="card__meta">1955–1970 · 英国 / 美国 · 绘画 · 平面</p>
+    <p class="card__thesis">「画面不表现运动——它让你的眼睛自己运动。」</p>
+    <div class="card__pal"><i style="background:#111111"></i><i style="background:#FFFFFF"></i><i style="background:#E5E5E5"></i><i style="background:#7A7A7A"></i><i style="background:#D62828"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>瓦萨雷利的《Vega》系列 (1957–)</li>
+        <li>布里奇特·赖利《水流》(1964)</li>
+        <li>瓦萨雷里为 1972 年慕尼黑奥运会做的视觉系统</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>加载与等待状态。抓手：高对比几何图案产生真实的视错觉——等待时长的主观感受确实会被画面改变。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上极易引发眩晕与偏头痛，这是医学问题不是审美问题。视错觉依赖精确的像素对齐，一旦缩放、抗锯齿或设备像素比变化就会失效或产生摩尔纹。</dd>
+      <dt>与现有区别</dt>
+      <dd>唯一一个「使观看者生理上产生反应」的流派。它和波普（09）同代，但波普靠符号，它靠神经。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">22</span><span class="card__name">极简主义<em>Minimalism</em></span></div>
+    <p class="card__meta">1960s– · 美国 · 雕塑 · 绘画 · 音乐</p>
+    <p class="card__thesis">「不做关于任何东西的作品——作品就是它自己。」</p>
+    <div class="card__pal"><i style="background:#C9C9C9"></i><i style="background:#2B2B2B"></i><i style="background:#F2F2F2"></i><i style="background:#8A6A4A"></i><i style="background:#4A5A6A"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>唐纳德·贾德的等距金属堆叠 (1960s)</li>
+        <li>卡尔·安德烈《等效 VIII》(1966) —— 120 块耐火砖</li>
+        <li>理查德·塞拉《倾斜之弧》(1981) —— 后来被拆除</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>设置页与空状态。抓手：单一材料、单一形体、工业级精度、等距重复；不做任何多余的装饰判断。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上的极简最容易被做成「没内容」。它的力量来自真实的重量与材料——二维里必须用极高精度的对齐、间距与字重来替代重量，否则就只是空。</dd>
+      <dt>与现有区别</dt>
+      <dd>北欧极简（11）是「因为天光不够所以拿掉多余的东西」，出发点是气候与生活；艺术极简主义是「因为形式本身就是内容」。前者温，后者冷。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">23</span><span class="card__name">后现代主义建筑<em>Postmodernism</em></span></div>
+    <p class="card__meta">1972–1990 · 美国 / 欧洲 · 建筑 · 理论</p>
+    <p class="card__thesis">「建筑应该说两种话：对大众说一种，对建筑师说另一种。」</p>
+    <div class="card__pal"><i style="background:#E8B84B"></i><i style="background:#5B8C7A"></i><i style="background:#C97B84"></i><i style="background:#2E3A5C"></i><i style="background:#F0EBE0"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>文丘里《向拉斯维加斯学习》(1972)</li>
+        <li>波特兰市政厅 (1982，迈克尔·格雷夫斯)</li>
+        <li>AT&amp;T 大楼 (1984，菲利普·约翰逊) —— 顶部被放上了一个古典山花</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>导航与首页。抓手：把历史元素「加引号」地用——比例是玩笑，但工艺是认真的。这正是界面里「复古元素」唯一能成立的用法。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上的「引用」极易退化成贴纸拼贴。没有共同的历史语汇时，引用会被读成混乱而不是双关——受众越年轻，越读不出双关。</dd>
+      <dt>与现有区别</dt>
+      <dd>瑞士国际主义（04）是它的直接靶子。这一件等于是给那座馆装了一面镜子。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">24</span><span class="card__name">解构主义<em>Deconstructivism</em></span></div>
+    <p class="card__meta">1980s– · 欧洲 / 美国 · 建筑</p>
+    <p class="card__thesis">「把结构拆开，让重力看起来不再可信。」</p>
+    <div class="card__pal"><i style="background:#B8C4D0"></i><i style="background:#1A1D24"></i><i style="background:#6E7C8C"></i><i style="background:#C4A24A"></i><i style="background:#3A2E44"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>拉维莱特公园 (1982–，伯纳德·屈米)</li>
+        <li>维特拉消防站 (1993，扎哈·哈迪德)</li>
+        <li>古根海姆毕尔巴鄂 (1997，弗兰克·盖里)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>音乐与影音界面。抓手：断裂的轴、错位的层、看起来不稳定但实际上精确的平衡。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">屏幕上「倾斜」很容易就只是倾斜（一个 CSS transform）。缺少真实的结构逻辑时，它看起来像坏了，而不像被解构了——两者的区别就是有没有一根真实受力线。</dd>
+      <dt>与现有区别</dt>
+      <dd>粗野主义（06）把结构露出来；解构主义把结构弄乱。一个是诚实，一个是怀疑。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">25</span><span class="card__name">垃圾摇滚平面<em>Grunge / Ray Gun</em></span></div>
+    <p class="card__meta">1992–1997 · 美国 · 杂志 · 平面</p>
+    <p class="card__thesis">「可读性不是设计的义务。」</p>
+    <div class="card__pal"><i style="background:#1A1A1A"></i><i style="background:#D8D2C4"></i><i style="background:#A33A2A"></i><i style="background:#6B6B5E"></i><i style="background:#4A4A52"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>大卫·卡森主编的《Ray Gun》杂志 (1992–)</li>
+        <li>卡森用 Zapf Dingbats 符号排完整篇访谈的那一期</li>
+        <li>九十年代初的西雅图唱片视觉与杂志版式</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>杂志与长文阅读页。抓手：故意违反排版规则——字距混乱、图文互相覆盖、层级靠位置而非尺寸。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">与可访问性直接冲突，这是硬冲突不是风格分歧。而且反规则一旦成为规则就只剩噪音——它需要真实的编辑判断，否则只是难读。</dd>
+      <dt>与现有区别</dt>
+      <dd>唯一一个把「不可读」当成正面主张的流派。它与瑞士国际主义（04）构成这组展品的两个极端。</dd>
+    </dl>
+  </article>
+
+</div>
+
+<h3>数字时代</h3>
+<div class="grid">
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">26</span><span class="card__name">赛博朋克<em>Cyberpunk</em></span></div>
+    <p class="card__meta">1982– · 日本 / 美国 · 影像 · 游戏 · 平面</p>
+    <p class="card__thesis">「高科技，低生活。」</p>
+    <div class="card__pal"><i style="background:#0A0E1A"></i><i style="background:#00F0FF"></i><i style="background:#FF2E88"></i><i style="background:#F5E663"></i><i style="background:#1E2430"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>《银翼杀手》(1982) 的城市视觉</li>
+        <li>押井守《攻壳机动队》(1995)</li>
+        <li>威廉·吉布森《神经漫游者》(1984)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>后台与数据监控界面。抓手：密集的等宽字信息层、霓虹高光只在关键处出现、汉字与拉丁混排制造信息过载感。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">极易滑向「暗底 + 霓虹 + 故障滤镜」的套路。缺少真实的信息密度时，赛博朋克只是一张壁纸——它的说服力来自「字真的很多且真的有用」。</dd>
+      <dt>与现有区别</dt>
+      <dd>千禧／蒸汽波（12）是对未来的悼念；赛博朋克是对未来的警告。两者都用霓虹，但一个在怀念，一个在预警。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">27</span><span class="card__name">Frutiger Aero<em>Frutiger Aero</em></span></div>
+    <p class="card__meta">2004–2013 · 全球 · 数字界面 · 广告 · 产品</p>
+    <p class="card__thesis">「技术等于清新：玻璃、水、草、气泡，以及蓝。」</p>
+    <div class="card__pal"><i style="background:#4FC3F7"></i><i style="background:#A5D6A7"></i><i style="background:#FFFFFF"></i><i style="background:#0D47A1"></i><i style="background:#C8E6C9"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>Windows Vista / 7 的 Aero 玻璃 (2006–09)</li>
+        <li>iOS 6 之前的拟物图标与高光 (至 2012)</li>
+        <li>2000 年代末大量科技产品广告中的水滴、草叶与气泡</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>营销落地页。抓手：玻璃质感加自然元素（水 / 草 / 气泡），高光蓝作为主色，一切都要显得「干净」。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">它依赖高光与透明，在低质量屏幕或暗色模式下会整体失效。而且它自 2013 年起被判定为过时，今天直接使用会读成「复古」而不是「当代」——这恰好是它与千禧（12）不同的失败方式。</dd>
+      <dt>与现有区别</dt>
+      <dd>千禧／蒸汽波（12）是 1995–2005 的铬与渐变；Frutiger Aero 是 2004–2013 的玻璃与水。两者相邻但材料不同，正好把数字审美的两个阶段分开。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">28</span><span class="card__name">拟物<em>Skeuomorphism</em></span></div>
+    <p class="card__meta">2007–2013 · 数字界面</p>
+    <p class="card__thesis">「新媒介应该先借旧物件的形，直到用户学会。」</p>
+    <div class="card__pal"><i style="background:#6B4A2A"></i><i style="background:#E8DCC8"></i><i style="background:#B8B0A0"></i><i style="background:#2B2B2B"></i><i style="background:#8A3A2A"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>iOS 6 的皮革记事本与木质书架 (至 2012)</li>
+        <li>Mac OS X 的皮革、亚麻与缝线质感 (2010–13)</li>
+        <li>早期软件对真实乐器与硬件面板的界面模拟</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>工具型界面（记事、日历、录音、调音）。抓手：材质、缝线、纸张边缘、真实的物理隐喻——每个元素都在回答「这相当于现实里的什么」。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">拟物依赖材质精度，精度不够就变成廉价的皮质贴图。更根本的是：它把隐喻成本前置，隐喻一旦过期，界面会显得笨重而陈旧。</dd>
+      <dt>与现有区别</dt>
+      <dd>它与扁平设计（29）是同一段历史的两端，因此这两件应该相邻陈列——观众能看到同一个问题在五年内被两次回答。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">29</span><span class="card__name">扁平设计<em>Flat Design</em></span></div>
+    <p class="card__meta">2013–2018 · 全球 · 数字界面</p>
+    <p class="card__thesis">「把拟物学到的语言剥掉材质，只留下信息。」</p>
+    <div class="card__pal"><i style="background:#2196F3"></i><i style="background:#FF4081"></i><i style="background:#4CAF50"></i><i style="background:#FFC107"></i><i style="background:#212121"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>iOS 7 (2013) —— 一次性清除全部材质</li>
+        <li>Google Material Design (2014)</li>
+        <li>微软 Metro / Modern UI (2010–)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>整套应用界面。抓手：无阴影、纯色块、几何图标，全部层级由字重与颜色承担。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">它的失败方式就是它今天被抱怨的方式：缺少深度线索导致可点击性不明，层级只能靠颜色硬撑，一旦配色出问题整个界面就垮。这是本馆里唯一一件「失效条件已经在现实中全部发生」的藏品。</dd>
+      <dt>与现有区别</dt>
+      <dd>它是过去十年全球界面的默认语言——也就是说，观众此刻正在使用的产品里到处都是它。这一件的作用是让观众认出自己身处何处。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">30</span><span class="card__name">玻璃拟态<em>Glassmorphism</em></span></div>
+    <p class="card__meta">2020– · 数字界面</p>
+    <p class="card__thesis">「让界面透过去——背景成为内容的一部分。」</p>
+    <div class="card__pal"><i style="background:#A8C0FF"></i><i style="background:#F0F4FF"></i><i style="background:#7C5CFF"></i><i style="background:#101322"></i><i style="background:#C9D6E8"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>macOS Big Sur (2020) 的界面语言</li>
+        <li>Windows 11 的 Mica 材质 (2021)</li>
+        <li>2021 年后 Web 设计中对背景模糊的大规模采用</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>浮层、面板与导航。抓手：背景模糊加半透明，配一条极细的亮边，靠分层制造深度。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">对比度会直接掉进可访问性红线——正文压在毛玻璃上极易不可读。而且背景模糊是昂贵的实时效果，低端设备上会直接掉帧。这两条都有硬性的量化红线，是很好的教学材料。</dd>
+      <dt>与现有区别</dt>
+      <dd>注意：本馆自己的藏品面板就用了这一手法（半透明 + 背景模糊）。这一件等于是把自己的做法拿出来解剖。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">31</span><span class="card__name">新粗野网页<em>Neo-Brutalism</em></span></div>
+    <p class="card__meta">2018– · 数字界面</p>
+    <p class="card__thesis">「把网页的『默认外观』当成正确的外观。」</p>
+    <div class="card__pal"><i style="background:#FFE500"></i><i style="background:#4D5DFF"></i><i style="background:#FF5C39"></i><i style="background:#111111"></i><i style="background:#F5F5F0"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>Gumroad 的公开重设计 (2021–)</li>
+        <li>Figma 社区中大量 neo-brutalist 组件模板</li>
+        <li>2019 年后一批品牌站与个人站的硬投影风</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>个人站与工作室页。抓手：系统默认字体、偏移硬投影、粗黑描边、荧光色、零圆角。它刻意取消「精致」这个变量。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">它靠「故意不精致」成立——一旦真的不精致，就只是没做设计，两者在屏幕上的差别极小。且高饱和硬边大量使用会迅速造成视觉疲劳。</dd>
+      <dt>与现有区别</dt>
+      <dd>建筑粗野主义（06）是裸露混凝土，网页新粗野是裸露浏览器默认样式。同名不同源，把它放在 06 附近能直接暴露「名字被劫持」这件事。</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <div class="card__top"><span class="card__no">32</span><span class="card__name">非洲未来主义<em>Afrofuturism</em></span></div>
+    <p class="card__meta">1990s– · 非洲与离散社群 · 音乐 · 平面 · 影像</p>
+    <p class="card__thesis">「把非洲传统当作未来的技术，而不是过去的遗产。」</p>
+    <div class="card__pal"><i style="background:#6B3FA0"></i><i style="background:#D4A017"></i><i style="background:#C4452F"></i><i style="background:#1B4A3A"></i><i style="background:#F0E6D2"></i></div>
+    <dl class="facts">
+      <dt>史料锚点</dt>
+      <dd><ul>
+        <li>桑·拉与《太空是地方》(1974)</li>
+        <li>沃利·迪奥普提出 Afrofuturism 一词 (1993)</li>
+        <li>露丝·卡特的《黑豹》服装设计 (2018，获奥斯卡)</li>
+      </ul></dd>
+      <dt>转译方案</dt>
+      <dd>品牌与活动页。抓手：传统几何纹样与高科技质感并置，金属与织物同框，紫金与霓虹共存。</dd>
+      <dt>失效预判</dt>
+      <dd class="warn">最容易被当成「异域装饰」。如果只是把纹样贴在科技背景上，做出来的恰恰是它反对的那种东西。转译必须回答一个问题：<em>传统在这里是技术，还是装饰？</em>答不出来就不该做这一件。</dd>
+      <dt>与现有区别</dt>
+      <dd>它与伊斯兰几何（15）一样是非西方的体系，但方向相反：一个向内收敛到数学，一个向外扩张到未来。</dd>
+    </dl>
+  </article>
+
+</div>
+
+<!-- ═══════════════ 5 排列 ═══════════════ -->
+<h2 id="order"><span class="num">05</span>排列顺序与分章</h2>
+
+<p>32 件的年代跨度从 8 世纪到 2020 年代，跨了一条漫长的时间线。建议按起点年代排列并分四章：</p>
+
+<table>
+  <thead><tr><th>章</th><th>年代范围</th><th>藏品</th><th>件数</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>一 · 前现代与手工艺</td>
+      <td>8 世纪 – 1910</td>
+      <td>伊斯兰几何 · 文人画 · 波斯细密画 · 巴洛克 · 新艺术运动</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>二 · 现代主义</td>
+      <td>1915 – 1969</td>
+      <td>风格派 · 至上主义 · 构成主义 · 包豪斯 · 装饰艺术 · 超现实主义 · 瑞士国际主义 · 世纪中叶现代</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>三 · 战后与反叛</td>
+      <td>1952 – 1988</td>
+      <td>粗野主义 · 欧普艺术 · 波普艺术 · 极简主义 · 后现代主义建筑 · 孟菲斯 · 解构主义 · 垃圾摇滚平面</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>四 · 东方传统与数字时代</td>
+      <td>15 世纪 – 2020s</td>
+      <td>浮世绘 · 侘寂 · 北欧极简 · 非洲未来主义 · 赛博朋克 · 千禧／蒸汽波 · Frutiger Aero · 拟物 · 扁平设计 · 新粗野网页 · 玻璃拟态</td>
+      <td>11</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  章节在标尺上以分隔与章名标出，索引抽屉也按章分组。
+  塔的<strong>底部是第一章（最早）</strong>，越往上越现代——所以往上滑是一直朝着「现在」走。
+</p>
+
+<!-- ═══════════════ 6 风险 ═══════════════ -->
+<h2 id="risk"><span class="num">06</span>风险与取舍</h2>
+
+<table>
+  <thead><tr><th>风险</th><th>说明</th><th>我的处理</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>塔太高，性能与精度</td>
+      <td>147 米的空间里放 32 件展品，如果全部常驻场景，绘制调用会明显上升。</td>
+      <td>视锥剔除 + 只对邻近 5–7 件保留高精度材质与粒子；远处的降级为简化材质。阴影只覆盖当前展位附近。</td>
+    </tr>
+    <tr>
+      <td>移动端标尺放不下 32 格</td>
+      <td>32 格 × 11px ≈ 350px，在 844px 高的手机上占掉一半。</td>
+      <td>移动端改成窗口化标尺：只显示当前 ± 6 格，两端用渐隐提示还有更多。</td>
+    </tr>
+    <tr>
+      <td>一次滑动一件，32 件要走很久</td>
+      <td>从第 1 件到第 32 件需要滑 31 次。</td>
+      <td>索引抽屉（按章分组）+ 标尺直接点击跳转 + 键盘 <code>←→</code>。滑动负责「逛」，跳转负责「找」。</td>
+    </tr>
+    <tr>
+      <td>堆叠会让部分展品构图失效</td>
+      <td>现在 12 幅画面是按「挂在一面墙上」设计的，垂直堆叠后相邻展品会同时出现在视野上下，构图可能互相打架。</td>
+      <td>重排间距与视野高度，并在第 1 轮就验证；必要时给单件画面加内边距，让它自带呼吸。</td>
+    </tr>
+    <tr>
+      <td>题材平衡偏向欧美</td>
+      <td>新增 20 件里有 4 件非西方（伊斯兰几何、文人画、波斯细密画、非洲未来主义），但总数仍是欧美占多数。</td>
+      <td>这是史实分布的反映，也是本馆的短板。如果你希望更平衡，告诉我，我可以替换掉几件重复度较高的欧美条目。</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__t">我的建议：先只做第 1 轮，验证手感再决定后面四轮</p>
+  <p>
+    空间从环换成塔，是所有改动里风险最高的一步——它同时动了空间、布局、控制、氛围四层。
+    手感对不对，只有跑起来才知道。所以第 1 轮我会把现有 12 件完整迁移到塔里并上线，
+    你滑两下就能判断：方向对不对、间距对不对、那份「在馆里」的感觉还在不在。
+  </p>
+  <p>
+    手感对了再开始写那 6 万字；不对就当场改，代价只有一轮。
+  </p>
+</div>
+
+<footer>
+  审美风格博物馆 · 选题报告 · 2026-09-13 · 本报告不含任何代码改动，等你拍板后再动工程
+</footer>
+
+</div>
+</body>
+</html>

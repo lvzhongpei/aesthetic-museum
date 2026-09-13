@@ -36,7 +36,21 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
-          # 首次运行时自动在仓库设置里启用 Pages（Sources = GitHub Actions）
+          # enablement: true 会在 Pages 尚未启用时尝试用 GITHUB_TOKEN 调
+          # POST /repos/{owner}/{repo}/pages 创建站点。
+          #
+          # 注意：创建 Pages 站点需要仓库管理员权限，而工作流默认的 GITHUB_TOKEN
+          # 拿不到这个权限 —— 所以在「刚建好、Pages 还没启用过」的仓库上，
+          # 这一步会以 403 失败，整个 workflow 也就断在这里（Build 其实是过的）。
+          #
+          # 处理办法（二选一）：
+          #   a) 仓库 Settings → Pages → Source 选 "GitHub Actions" 启用一次，
+          #      之后本步骤会变成幂等的空操作，重跑/再推都能过；
+          #   b) 用有 repo 权限的 token 调一次
+          #      curl -X POST -H "Authorization: token <PAT>" \
+          #        -d '{"build_type":"workflow"}' \
+          #        https://api.github.com/repos/<owner>/<repo>/pages
+          # 本仓库已按 (b) 启用，当前配置直接可用。
           enablement: true
 
       - name: Upload artifact

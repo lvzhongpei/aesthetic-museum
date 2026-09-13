@@ -73,10 +73,32 @@ npm run preview    # 预览构建产物
 ## 部署
 
 推送 `main` 分支即触发 `.github/workflows/deploy.yml`：
-安装依赖 → 构建 → 上传 `dist` → 发布到 GitHub Pages。
+安装依赖 → 构建 → 配置 Pages → 上传 `dist` → 发布。
 
-工作流里的 `actions/configure-pages` 带 `enablement: true`，
-首次运行会自动在仓库设置中启用 Pages（Sources = GitHub Actions），无需手动操作。
+线上地址：<https://lvzhongpei.github.io/aesthetic-museum/>
+
+### 迁移到新仓库时的唯一一处手动步骤
+
+工作流里的 `actions/configure-pages` 带了 `enablement: true`，**但这一步救不了全新仓库**：
+创建 Pages 站点需要仓库管理员权限，而工作流默认的 `GITHUB_TOKEN` 没有这个权限，
+所以在一个刚建好、Pages 从未启用过的仓库上第一次跑，会卡在 `Configure Pages` 报 403
+（`Build` 其实是通过的）。
+
+**先用 PAT 启用一次**：
+
+```bash
+curl -X POST \
+  -H "Authorization: token <你的 PAT，需 repo 权限>" \
+  -H "Accept: application/vnd.github+json" \
+  -d '{"build_type":"workflow"}' \
+  https://api.github.com/repos/<owner>/<repo>/pages
+```
+
+或者直接在仓库 **Settings → Pages → Source** 选 **GitHub Actions** 保存一次。
+启用之后，`enablement: true` 就退化成幂等空操作，之后每次推送都能正常跑完。
+
+> 顺带一条：classic PAT 想推送 `.github/workflows/` 下的文件，除了 `repo`
+> 还需要 `workflow` 权限；否则 GitHub 会单独拒收这个文件。
 
 ---
 

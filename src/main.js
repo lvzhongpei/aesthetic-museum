@@ -4,8 +4,8 @@ import './styles/exhibits.css';
 
 import * as THREE from 'three';
 import { EXHIBITS, MUSEUM } from './data/exhibits.js';
-import { detectTier, createStage, RING_RADIUS } from './core/stage.js';
-import { buildGallery, PLATE_Y } from './core/gallery.js';
+import { detectTier, createStage } from './core/stage.js';
+import { buildGallery } from './core/gallery.js';
 import { createAtmosphere, atmosphereFrom } from './core/atmosphere.js';
 import { createControls } from './core/controls.js';
 import { createPost } from './core/post.js';
@@ -20,7 +20,7 @@ const $ = (id) => document.getElementById(id);
 const TOTAL = EXHIBITS.length;
 const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ───────────────────────── 载入屏 ───────────────────────── */
+/* ─────────── 载入屏 ─────────── */
 
 const boot = $('boot');
 const bootFill = $('bootFill');
@@ -36,7 +36,7 @@ function bootDone() {
   setTimeout(() => boot.classList.add('is-done'), 420);
 }
 
-/* ───────────────────────── WebGL 兜底 ───────────────────────── */
+/* ─────────── WebGL 兜底 ─────────── */
 
 function hasWebGL() {
   try {
@@ -47,7 +47,7 @@ function hasWebGL() {
   }
 }
 
-/** 无法启动 3D 时，退回纯 DOM 图鉴——展品与文档一条不少，只是没有空间。 */
+/** 无法启动 3D 时退回纯 DOM 图鉴 —— 展品与文档一条不少，只是没有空间。 */
 function catalogueFallback() {
   boot.classList.add('is-done');
   $('stage').style.display = 'none';
@@ -109,7 +109,7 @@ function catalogueFallback() {
   $('langToggle')?.addEventListener('click', () => setTimeout(() => window.location.reload(), 60));
 }
 
-/* ───────────────────────── 主流程 ───────────────────────── */
+/* ─────────── 主流程 ─────────── */
 
 async function main() {
   if (!hasWebGL()) {
@@ -120,7 +120,7 @@ async function main() {
   const tier = detectTier();
   progress(0.05, 'boot.loading');
 
-  // 兜底：无论发生什么，14 秒后一定撤掉载入屏，绝不让观众停在黑屏上
+  // 兜底：14 秒后无论如何撤掉载入屏
   setTimeout(() => {
     if (!boot.classList.contains('is-done')) {
       console.warn('[museum] boot watchdog: 首帧未在预期时间内完成，强制开馆');
@@ -128,7 +128,7 @@ async function main() {
     }
   }, 14000);
 
-  // 字体先就位，否则程序生成的展品画面会用错字体
+  // 字体先就位 —— 否则程序生成的展品画面会用错字体
   try {
     await Promise.race([
       Promise.all([
@@ -141,12 +141,12 @@ async function main() {
       new Promise((r) => setTimeout(r, 3000)),
     ]);
   } catch (e) {
-    /* 字体没到就用系统字体，不阻断开馆 */
+    /* 不阻断 */
   }
   progress(0.12, 'boot.building');
 
   const canvas = $('stage');
-  const stage = createStage(canvas, tier);
+  const stage = createStage(canvas, tier, TOTAL);
   const { scene, camera, renderer, lights } = stage;
 
   const gallery = await buildGallery(
@@ -161,7 +161,7 @@ async function main() {
   const items = gallery.items;
   const indexById = new Map(EXHIBITS.map((e, i) => [e.id, i]));
 
-  const dust = createDust(scene, tier);
+  const dust = createDust(scene, tier, TOTAL);
   const post = createPost(renderer, scene, camera, tier);
   const atmosphere = createAtmosphere(stage, atmosphereFrom(EXHIBITS[0]));
   const controls = createControls(camera, { count: TOTAL, canvas });
@@ -189,15 +189,6 @@ async function main() {
   let spotTarget = 0;
   let spotNow = 0;
 
-  function placeSpot(index) {
-    const a = (index / TOTAL) * Math.PI * 2;
-    const x = Math.sin(a) * (RING_RADIUS - 1.6);
-    const z = Math.cos(a) * (RING_RADIUS - 1.6);
-    lights.spot.position.set(x, 5.4, z);
-    lights.spot.target.position.set(x, PLATE_Y, z);
-    lights.spot.target.updateMatrixWorld();
-  }
-
   controls.onPick((ndc) => {
     raycaster.setFromCamera(ndc, camera);
     const hits = raycaster.intersectObjects(pickables, false);
@@ -213,7 +204,7 @@ async function main() {
     controls.setFocus(true);
   });
 
-  /* ── 展位变化：换氛围、换射灯、换展板 ── */
+  /* ── 展位变化 ── */
 
   function hashFor(i) {
     return `#/${EXHIBITS[i].id}`;
@@ -225,8 +216,7 @@ async function main() {
     const at = atmosphereFrom(ex);
     atmosphere.set(at, { doorway: true });
     dust.setColor(at.accent);
-    placeSpot(index);
-    spotTarget = focus != null ? 1.75 : 0;
+    spotTarget = focus != null ? 1.85 : 0;
 
     if (focus != null) {
       if (!sheet.isOpen() || !sheet.exhibit || sheet.exhibit.id !== ex.id) {
@@ -248,7 +238,7 @@ async function main() {
     sheet.refresh();
   });
 
-  /* 观众一旦开始操作，底部导览提示就退场 */
+  /* 观众一旦操作，底部导览提示就退场 */
   const markTouched = () => {
     document.body.dataset.touched = '1';
   };
@@ -267,11 +257,7 @@ async function main() {
   window.addEventListener('orientationchange', () => setTimeout(relayout, 240));
 
   /**
-   * 展板展开时把 3D 画面让出展板占的位置——
-   * 桌面端让出右半边，移动端把画面上推，好让展品在抽屉上方露出上半截。
-   *
-   * setViewOffset 的 x/y 是「视窗左上角在更大视锥里的位置」，向右向下为正，
-   * 所以 x 为正 = 相机瞄向右侧 = 画面左移；y 为正 = 相机瞄向下方 = 画面上移。
+   * 展板展开时把 3D 画面让出 —— 桌面让出右半边，移动把画面上推。
    */
   function applyViewOffset() {
     const w = window.innerWidth;
@@ -293,6 +279,7 @@ async function main() {
   let lastInk = '';
   const focusAmt = items.map(() => 0);
   let prev = performance.now();
+  let spotY = 0;
 
   function syncCss() {
     const c = atmosphere.current;
@@ -301,23 +288,28 @@ async function main() {
     if (ink === lastInk) return;
     lastInk = ink;
     root.style.setProperty('--am-ink', ink);
-    root.style.setProperty('--am-paper', `#${c.ambient.getHexString()}`);
+    root.style.setProperty('--am-paper', `#${c.fog.getHexString()}`);
     root.style.setProperty('--am-board-ink', hslToHex(0, 0, 0.09));
-    const { h } = hexToHsl(`#${c.ambient.getHexString()}`);
+    const { h } = hexToHsl(`#${c.fog.getHexString()}`);
     root.style.setProperty('--am-board', hslToHex(h, 0.1, 0.955));
   }
 
   root.style.setProperty('--am-ink', atmosphere.text);
-  root.style.setProperty('--am-paper', atmosphereFrom(EXHIBITS[0]).ambient);
+  root.style.setProperty('--am-paper', atmosphereFrom(EXHIBITS[0]).fog);
   root.style.setProperty('--am-accent', atmosphere.accent);
   root.style.setProperty('--am-board', '#f4f4f2');
   root.style.setProperty('--am-board-ink', '#16161a');
 
   function loop(now) {
-    const dt = Math.min(0.05, (now - prev) / 1000);
+    // dt 必须夹在 [0, 0.05]：
+    // 首帧的 rAF 时间戳可能早于上一行取样到的 performance.now()，
+    // 得到负 dt 会把入场进度往回推 —— 相机反向飞走、曝光变成负数、整屏全黑。
+    const dt = Math.max(0, Math.min(0.05, (now - prev) / 1000));
     prev = now;
 
     controls.update(REDUCED ? Math.min(dt, 0.008) : dt);
+    const camY = controls.state.y + controls.state.lean;
+    stage.follow(camY);
 
     const reveal = controls.reveal;
     root.style.setProperty('--hud-op', String(reveal));
@@ -328,22 +320,25 @@ async function main() {
     post.setTransition(atmosphere.transition, atmosphere.accent);
     syncCss();
 
-    // 射灯淡入淡出
+    // 射灯跟随相机在墙上的注视高度，避免换件时射灯脱节
+    spotY = damp(spotY, controls.state.y - controls.state.lift + controls.state.goal, 4.5, dt);
+    lights.spot.position.y = spotY;
+    lights.spot.target.updateMatrixWorld();
     spotNow += (spotTarget - spotNow) * (1 - Math.exp(-4.2 * dt));
     lights.spot.intensity = spotNow;
 
-    // 被聚焦的展框浮起一点、并亮起自身强调色
+    // 被聚焦的展框：自发光 + 走向相机（local +z = 朝塔内）
     const focusIdx = controls.state.mode === 'focus' ? controls.state.index : -1;
     for (let i = 0; i < items.length; i += 1) {
       const target = i === focusIdx ? 1 : 0;
-      if (Math.abs(focusAmt[i] - target) > 0.001) {
-        focusAmt[i] += (target - focusAmt[i]) * (1 - Math.exp(-6 * dt));
+      const drift = (target - focusAmt[i]) * (1 - Math.exp(-6 * dt));
+      if (Math.abs(drift) > 0.0006 || target !== focusAmt[i] && (target === 1 || focusAmt[i] > 0.001)) {
+        focusAmt[i] += drift;
         const it = items[i];
-        it.art.position.z = 0.005 + focusAmt[i] * 0.05;
+        it.art.position.z = 0.305 + focusAmt[i] * 0.05;
         it.artMat.emissiveIntensity = it.emissiveBase * (1 + focusAmt[i] * 0.4);
         it.labelMat.emissiveIntensity = it.labelBase * (1 + focusAmt[i] * 0.4);
         it.haloMat.opacity = it.haloBase * (1 + focusAmt[i] * 0.62);
-        it.poolMat.opacity = it.poolBase * (1 + focusAmt[i] * 1.6);
       }
     }
 
@@ -352,14 +347,18 @@ async function main() {
     requestAnimationFrame(loop);
   }
 
-  // 首帧先画一次，再撤载入屏
+  // damp 工具必须在 loop 之前已声明
+  function damp(cur, target, lambda, dt) {
+    return cur + (target - cur) * (1 - Math.exp(-lambda * dt));
+  }
+
   renderer.render(scene, camera);
   progress(0.94, 'boot.entering');
   prev = performance.now();
   requestAnimationFrame(loop);
   setTimeout(bootDone, 460);
 
-  /* ── 深链：/…#/bauhaus ── */
+  /* ── 深链 ── */
 
   function applyHash() {
     const m = /^#\/([a-z0-9-]+)$/i.exec(location.hash || '');

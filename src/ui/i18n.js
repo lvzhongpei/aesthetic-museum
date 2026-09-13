@@ -95,7 +95,7 @@ const DICT = {
     'sheet.prev': 'Previous',
     'sheet.next': 'Next',
     'sheet.close': 'Close',
-    'sheet.hint': '← → change exhibit · Esc back to gallery',
+    'sheet.hint': '↓ ↑ change exhibit · Esc back to gallery',
     'index.title': 'Exhibit Index',
     'index.note': 'Chronological, twelve exhibits',
     'about.title': 'About',

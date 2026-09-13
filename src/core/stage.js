@@ -1,16 +1,32 @@
 import * as THREE from 'three';
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 
 /**
- * 馆体 —— 暗场电影感的环形展厅。
+ * 馆体 —— 垂直展塔。
  *
- * 空间的读法：一间收得很暗的展室，抛光石材地面几乎能照出人影，
- * 展品自己是画面里唯一的光源。所谓"高级感"其实只来自三件事——
- * 明暗落差足够大、地面的反射足够真、发光体有光晕。
+ * 空间读法：一条竖直的窄长空间，正面一堵高墙，展品沿这堵墙垂直排列。
+ * 观众沿垂直轴升降，始终正视当前展品，头顶与脚下的墙无限延伸进雾里。
+ *
+ * 为什么不是环形：环形展厅半径 12.2 米时 12 件各占 30°，放到 30 件每件只剩 12°，
+ * 帧宽 2.92 米会直接互相重叠。竖向堆叠是唯一能扩到 30 件以上、
+ * 同时让「手势 / 画面运动 / 右侧标尺」三者同向的形态。
+ *
+ * 坐标约定：展品挂在 x = +WALL_X 的平面上（法线指向 -X），
+ * 第 01 件在 y = 0，件号越大 y 越小（往下走）。
  */
 
-export const RING_RADIUS = 12.2;
-export const WALL_HEIGHT = 9;
+export const WALL_X = 4.6; // 展墙
+export const BACK_X = -7.6; // 背墙
+export const SIDE_Z = 5.4; // 两侧墙（走廊因此是窄长的）
+export const BAY = 5.0; // 每个展位的垂直节距
+const CAP_MARGIN = 3.2; // 塔顶／塔底封口相对首末展品的余量
+
+export function towerSpan(count) {
+  const top = CAP_MARGIN;
+  const bottom = -(count - 1) * BAY - CAP_MARGIN;
+  return { top, bottom, height: top - bottom };
+}
+
+export const slotY = (i) => -i * BAY;
 
 export function detectTier() {
   const ua = navigator.userAgent || '';
@@ -31,36 +47,41 @@ export function detectTier() {
   };
 }
 
-/** 顶暗、腰亮、脚更暗的竖向渐变 —— 真实展厅靠这条曲线立住体积 */
+/**
+ * 洗墙光梯度：每个展位一个循环 —— 紧贴灯槽处最亮，向下衰减。
+ * 纹理按展位重复，于是"一层层往下"这件事在视觉上被反复确认，
+ * 人在升降时才有参照物可依。
+ */
 function makeWallGradient() {
   const c = document.createElement('canvas');
   c.width = 4;
-  c.height = 256;
+  c.height = 512;
   const ctx = c.getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0.0, 'rgb(30,30,36)');
-  g.addColorStop(0.18, 'rgb(154,154,166)');
-  g.addColorStop(0.54, 'rgb(255,255,255)');
-  g.addColorStop(0.86, 'rgb(98,98,108)');
-  g.addColorStop(1.0, 'rgb(26,26,30)');
+  const g = ctx.createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0.0, 'rgb(18,18,22)');
+  g.addColorStop(0.1, 'rgb(232,232,240)');
+  g.addColorStop(0.34, 'rgb(150,150,162)');
+  g.addColorStop(0.72, 'rgb(64,64,72)');
+  g.addColorStop(1.0, 'rgb(20,20,24)');
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 4, 256);
+  ctx.fillRect(0, 0, 4, 512);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
   return tex;
 }
 
-/** 程序生成的环境贴图：金属与石材靠它才有真实的反射层次 */
+/** 程序生成环境贴图：金属边框靠它才有真实的反射层次 */
 function makeEnvironment(renderer) {
   const envScene = new THREE.Scene();
   const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     uniforms: {
-      uTop: { value: new THREE.Color('#4a4a56') },
-      uMid: { value: new THREE.Color('#141419') },
+      uTop: { value: new THREE.Color('#55555f') },
+      uMid: { value: new THREE.Color('#14141a') },
       uBottom: { value: new THREE.Color('#050506') },
-      uBand: { value: new THREE.Color('#b9b9c6') },
+      uBand: { value: new THREE.Color('#c4c4d0') },
     },
     vertexShader: /* glsl */ `
       varying vec3 vP;
@@ -76,26 +97,29 @@ function makeEnvironment(renderer) {
         float h = normalize(vP).y;
         vec3 c = mix(uBottom, uMid, smoothstep(-0.9, 0.05, h));
         c = mix(c, uTop, smoothstep(0.05, 0.95, h));
-        c += uBand * smoothstep(0.70, 0.94, h) * 0.85;
+        c += uBand * smoothstep(0.68, 0.92, h) * 0.9;
         gl_FragColor = vec4(c, 1.0);
       }
     `,
   });
   envScene.add(new THREE.Mesh(new THREE.SphereGeometry(60, 32, 24), mat));
-
   const pmrem = new THREE.PMREMGenerator(renderer);
   const rt = pmrem.fromScene(envScene, 0.02);
   pmrem.dispose();
   return rt.texture;
 }
 
-export function createStage(canvas, tier) {
+export function createStage(canvas, tier, count) {
+  const span = towerSpan(count);
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: tier.antialias,
     alpha: false,
     powerPreference: 'high-performance',
     stencil: false,
+    // 保留绘制缓冲：展品画面因此可以被右键保存、被截图工具捕获。
+    // 本站的核心就是"看展品"，拿不走画面等于白看。
+    preserveDrawingBuffer: true,
   });
   renderer.setPixelRatio(tier.dpr);
   renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -108,47 +132,47 @@ export function createStage(canvas, tier) {
   }
 
   const scene = new THREE.Scene();
-  const bg = new THREE.Color('#07070a');
+  const bg = new THREE.Color('#06060a');
   scene.background = bg;
-  scene.fog = new THREE.Fog(bg, RING_RADIUS * 0.72, RING_RADIUS * 2.9);
+  // 雾按到墙的距离标定：塔向上向下都无限延伸，远端必须溶掉
+  scene.fog = new THREE.Fog(bg, 10.5, 36);
 
   const envMap = makeEnvironment(renderer);
   scene.environment = envMap;
 
   const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 140);
-  camera.position.set(0, 3.2, 3);
+  camera.position.set(WALL_X - 10, 0, 0);
 
-  /* ── 光 ──
-     暗场的规则：主光只负责"勾形"，画面真正的亮度来自展品自己。 */
-  const hemi = new THREE.HemisphereLight('#9a9aa8', '#101014', 0.78);
+  /* ── 光 ── */
+  const hemi = new THREE.HemisphereLight('#9a9aa8', '#0a0a0e', 0.72);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight('#ffffff', 0.85);
-  key.position.set(4, 13, 5);
+  const key = new THREE.DirectionalLight('#ffffff', 0.8);
+  key.position.set(2, 14, 6);
+  key.target.position.set(WALL_X, 0, 0);
   if (tier.shadows) {
     key.castShadow = true;
     key.shadow.mapSize.set(tier.shadowMap, tier.shadowMap);
     key.shadow.camera.near = 1;
-    key.shadow.camera.far = 48;
-    const s = RING_RADIUS + 4;
+    key.shadow.camera.far = 60;
+    const s = 14;
     key.shadow.camera.left = -s;
     key.shadow.camera.right = s;
     key.shadow.camera.top = s;
     key.shadow.camera.bottom = -s;
-    key.shadow.bias = -0.0009;
-    key.shadow.normalBias = 0.035;
+    key.shadow.bias = -0.001;
+    key.shadow.normalBias = 0.04;
   }
   scene.add(key);
+  scene.add(key.target);
 
-  // 轮廓光：从环的另一侧打回来，用展区的强调色，专门勾展框的边
-  const rim = new THREE.DirectionalLight('#ffffff', 1.35);
-  rim.position.set(-7, 6.5, -7);
+  const rim = new THREE.DirectionalLight('#ffffff', 1.2);
+  rim.position.set(-6, 4, -7);
   scene.add(rim);
 
-  // 聚焦展品的射灯
-  const spot = new THREE.SpotLight('#ffffff', 0, 19, Math.PI * 0.15, 0.55, 1.5);
-  spot.position.set(0, 6.1, 0);
-  spot.target.position.set(0, 3, 0);
+  const spot = new THREE.SpotLight('#ffffff', 0, 22, Math.PI * 0.15, 0.55, 1.5);
+  spot.position.set(WALL_X - 1.8, 0, 0);
+  spot.target.position.set(WALL_X, 0, 0);
   if (tier.shadows) {
     spot.castShadow = true;
     spot.shadow.mapSize.set(tier.shadowMap, tier.shadowMap);
@@ -158,148 +182,118 @@ export function createStage(canvas, tier) {
   scene.add(spot);
   scene.add(spot.target);
 
-  // 环心一点点提亮，避免观众脚下全黑
-  const fill = new THREE.PointLight('#ffffff', 0.55, 10, 1.8);
-  fill.position.set(0, 1.6, 0);
-  scene.add(fill);
-
-  /* ── 地面 ──
-     真的反射（Reflector）打底，上面压一层半透明石材。
-     反射是"贵"最直接的来源，所以只在桌面端开。 */
-  let mirror = null;
-  if (tier.reflection) {
-    mirror = new Reflector(new THREE.CircleGeometry(RING_RADIUS + 1.7, 128), {
-      clipBias: 0.0035,
-      textureWidth: 1024,
-      textureHeight: 1024,
-      color: 0x3a3a42,
-    });
-    mirror.rotation.x = -Math.PI / 2;
-    mirror.position.y = 0.001;
-    scene.add(mirror);
-  }
-
-  const stoneMat = new THREE.MeshStandardMaterial({
-    color: '#101014',
-    emissive: new THREE.Color('#0f0f13'),
-    emissiveIntensity: 0.34,
-    roughness: 0.62,
-    metalness: 0.25,
-    envMapIntensity: 0.7,
-    transparent: tier.reflection,
-    opacity: tier.reflection ? 0.66 : 1,
-    depthWrite: !tier.reflection,
-  });
-  const stone = new THREE.Mesh(new THREE.CircleGeometry(RING_RADIUS + 1.7, 128), stoneMat);
-  stone.rotation.x = -Math.PI / 2;
-  stone.position.y = 0.004;
-  stone.receiveShadow = tier.shadows;
-  stone.renderOrder = 2;
-  scene.add(stone);
-
-  /* ── 环形外墙与天花 ── */
+  /* ── 展墙：竖向洗墙梯度按展位重复 ── */
   const gradTex = makeWallGradient();
+  gradTex.repeat.set(1, count);
+
   const wallMat = new THREE.MeshStandardMaterial({
     color: '#141418',
     map: gradTex,
     emissive: new THREE.Color('#1a1a20'),
     emissiveMap: gradTex,
-    emissiveIntensity: 0.85,
+    emissiveIntensity: 1.25,
     roughness: 0.92,
-    metalness: 0.05,
-    side: THREE.BackSide,
+    metalness: 0.04,
     envMapIntensity: 0.35,
   });
-  const wall = new THREE.Mesh(
-    new THREE.CylinderGeometry(RING_RADIUS + 1.5, RING_RADIUS + 1.5, WALL_HEIGHT, 128, 1, true),
-    wallMat,
-  );
-  wall.position.y = WALL_HEIGHT / 2 - 1.4;
+  const wallH = span.height + 14;
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_Z * 2, wallH), wallMat);
+  wall.rotation.y = -Math.PI / 2;
+  wall.position.set(WALL_X, (span.top + span.bottom) / 2, 0);
   wall.receiveShadow = tier.shadows;
   scene.add(wall);
 
-  const ceilMat = new THREE.MeshStandardMaterial({
-    color: '#0c0c10',
-    emissive: new THREE.Color('#0e0e12'),
-    emissiveIntensity: 0.6,
+  /* ── 两侧墙与背墙 ──
+     侧墙的平面默认就躺在 XY 平面、法线 +Z，宽度沿 X —— 这正是侧墙要的样子，
+     所以它不能用 rotation.y 去转：转 90° 会把它立成一道横切走廊的板子，
+     正好挡在观众与展墙之间，整座塔就全黑了。背墙才需要转 90°（法线要沿 X）。 */
+  const sideMat = new THREE.MeshStandardMaterial({
+    color: '#0d0d11',
+    emissive: new THREE.Color('#0f0f14'),
+    emissiveIntensity: 0.9,
+    roughness: 0.95,
+    metalness: 0.05,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.2,
+  });
+  [-SIDE_Z, SIDE_Z].forEach((z) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(WALL_X - BACK_X, wallH), sideMat);
+    m.position.set((WALL_X + BACK_X) / 2, (span.top + span.bottom) / 2, z);
+    scene.add(m);
+  });
+
+  const backMat = new THREE.MeshStandardMaterial({
+    color: '#08080b',
+    emissive: new THREE.Color('#0a0a0e'),
+    emissiveIntensity: 0.8,
     roughness: 1,
     metalness: 0,
-    side: THREE.BackSide,
+    side: THREE.DoubleSide,
   });
-  const ceiling = new THREE.Mesh(
-    new THREE.CylinderGeometry(RING_RADIUS + 1.5, RING_RADIUS + 1.5, 0.4, 128, 1, true),
-    ceilMat,
-  );
-  ceiling.position.y = WALL_HEIGHT - 1.4;
-  scene.add(ceiling);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_Z * 2, wallH), backMat);
+  back.position.set(BACK_X, (span.top + span.bottom) / 2, 0);
+  back.rotation.y = Math.PI / 2;
+  scene.add(back);
 
-  const capMat = new THREE.MeshStandardMaterial({ color: '#08080b', emissive: new THREE.Color('#0b0b0f'), emissiveIntensity: 0.6, roughness: 1, metalness: 0 });
-  const cap = new THREE.Mesh(new THREE.CircleGeometry(RING_RADIUS + 1.5, 128), capMat);
-  cap.rotation.x = Math.PI / 2;
-  cap.position.y = WALL_HEIGHT - 1.42;
-  scene.add(cap);
-
-  /* 墙脚收口：暗场里这条线比亮场更重要，空间全靠它被读出来 */
-  const trimMat = new THREE.MeshStandardMaterial({
-    color: '#050506',
-    roughness: 0.5,
-    metalness: 0.55,
-    side: THREE.BackSide,
-    envMapIntensity: 1.2,
+  /* ── 抛光墙裙 ──
+     塔里没有大面积地面可以反射（硬塞一块会变成突兀的镜子），
+     所以竖向节奏交给墙裙：每个展位底下一道镜面不锈钢细带，
+     随升降从画面里滑过，是"我在往上／往下走"最关键的那个参照物。 */
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: '#2e2e36',
+    roughness: 0.16,
+    metalness: 0.96,
+    envMapIntensity: 2.2,
   });
-  const skirt = new THREE.Mesh(
-    new THREE.CylinderGeometry(RING_RADIUS + 1.47, RING_RADIUS + 1.47, 0.26, 128, 1, true),
-    trimMat,
-  );
-  skirt.position.y = 0.13;
-  scene.add(skirt);
-
-  /* ── 顶部灯带：真正发光的小块，泛光会把它们晕开 ── */
-  const stripMat = new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false });
-  const strips = new THREE.Group();
-  for (let i = 0; i < 12; i += 1) {
-    const a = (i / 12) * Math.PI * 2;
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.05, 0.14), stripMat);
-    bar.position.set(
-      Math.sin(a) * (RING_RADIUS - 1.2),
-      5.95,
-      Math.cos(a) * (RING_RADIUS - 1.2),
-    );
-    bar.rotation.y = a;
-    strips.add(bar);
+  const baseBand = new THREE.Group();
+  for (let i = 0; i < count; i += 1) {
+    const dy = -i * BAY - 2.72;
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(SIDE_Z * 2, 0.13, 0.07), baseMat);
+    bar.position.set(0, dy, 0.035);
+    baseBand.add(bar);
   }
-  scene.add(strips);
+  const bandHolder = new THREE.Group();
+  bandHolder.rotation.y = -Math.PI / 2;
+  bandHolder.position.set(WALL_X, 0, 0);
+  bandHolder.add(baseBand);
+  scene.add(bandHolder);
 
-  /* ── 环心标识：一枚极细的发光圆环，暗示"你正站在馆中" ── */
-  const discMat = new THREE.MeshBasicMaterial({
-    color: '#ffffff',
-    transparent: true,
-    opacity: 0.34,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    toneMapped: false,
+  /* ── 塔顶与塔底封口：走到第一件／最后一件时才看得见 ── */
+  const capMat = new THREE.MeshStandardMaterial({
+    color: '#0a0a0d',
+    emissive: new THREE.Color('#0c0c10'),
+    emissiveIntensity: 0.7,
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide,
   });
-  const disc = new THREE.Mesh(new THREE.RingGeometry(1.46, 1.5, 128), discMat);
-  disc.rotation.x = -Math.PI / 2;
-  disc.position.y = 0.012;
-  scene.add(disc);
+  [span.top, span.bottom].forEach((y) => {
+    const cap = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_Z * 2, WALL_X - BACK_X), capMat);
+    cap.rotation.x = Math.PI / 2;
+    cap.position.set((WALL_X + BACK_X) / 2, y, 0);
+    scene.add(cap);
+  });
 
   return {
     renderer,
     scene,
     camera,
     envMap,
-    lights: { hemi, key, rim, spot, fill },
+    span,
+    lights: { hemi, key, rim, spot },
     mats: {
-      floor: stoneMat,
       wall: wallMat,
-      ceiling: ceilMat,
+      side: sideMat,
+      back: backMat,
       cap: capMat,
-      disc: discMat,
-      strip: stripMat,
-      trim: trimMat,
+      base: baseMat,
     },
-    mirror,
+    /** 主光与射灯跟随相机高度，否则升降会跑出阴影相机范围 */
+    follow(y) {
+      key.position.set(2, y + 14, 6);
+      key.target.position.set(WALL_X, y, 0);
+      key.target.updateMatrixWorld();
+    },
     resize() {
       const w = window.innerWidth;
       const h = window.innerHeight;

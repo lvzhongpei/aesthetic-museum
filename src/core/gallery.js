@@ -1,19 +1,19 @@
 import * as THREE from 'three';
 import { paintPlate, paintLabel, PLATE_W, PLATE_H, LABEL_W, LABEL_H } from './plates.js';
-import { RING_RADIUS } from './stage.js';
+import { WALL_X, slotY } from './stage.js';
 import { luminance } from './color.js';
 
-export const PLATE_WORLD_W = 2.92;
+/** 展品画面在塔里的实际尺寸（米） */
+export const PLATE_WORLD_W = 2.66;
 const PLATE_WORLD_H = PLATE_WORLD_W * (PLATE_H / PLATE_W);
-const LABEL_WORLD_W = PLATE_WORLD_W;
+const LABEL_WORLD_W = 1.95;
 const LABEL_WORLD_H = LABEL_WORLD_W * (LABEL_H / LABEL_W);
 
-/* 竖向排布（单位：米）。展框下沿必须离开地面，否则展签会被地板吃掉。
-   展框 1.13 → 4.87，展签 0.23 → 0.87，两者留 0.26 的呼吸。 */
-export const PLATE_Y = 3.0;
-export const LABEL_Y = 0.55;
+/** 展位内的竖向偏移：灯槽在上、展签在下 —— 两者都要在正视图里看得见 */
+export const COVE_DY = 2.18;
+export const LABEL_DY = -2.02;
 
-/** 椭圆柔光晕：展框背后的一团光，交给泛光把它晕开 */
+/** 椭圆柔光晕：展框背后的一团光，交给泛光晕开 */
 function makeHaloTexture() {
   const W = 256;
   const H = 320;
@@ -39,24 +39,6 @@ function makeHaloTexture() {
   return tex;
 }
 
-/** 地面柔光池：展品在抛光地面上投下的一小片光 */
-function makePoolTexture() {
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 256;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(128, 128, 4, 128, 128, 126);
-  g.addColorStop(0, 'rgba(255,255,255,0.86)');
-  g.addColorStop(0.4, 'rgba(255,255,255,0.3)');
-  g.addColorStop(0.78, 'rgba(255,255,255,0.07)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 256, 256);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
 export async function buildGallery(scene, exhibits, lang, renderer, tier, onProgress) {
   const group = new THREE.Group();
   scene.add(group);
@@ -66,24 +48,23 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
     : 1;
 
   const haloTex = makeHaloTexture();
-  const poolTex = makePoolTexture();
   const items = [];
   const frame = () => new Promise((r) => setTimeout(r, 0));
 
   for (let i = 0; i < exhibits.length; i += 1) {
     const ex = exhibits[i];
-    const angle = (i / exhibits.length) * Math.PI * 2;
     const node = new THREE.Group();
-    node.position.set(Math.sin(angle) * RING_RADIUS, 0, Math.cos(angle) * RING_RADIUS);
-    node.rotation.y = angle + Math.PI;
+    node.position.set(WALL_X, slotY(i), 0);
+    // 平面默认法线 +Z；绕 y 转 -90° 后局部 +Z 指向世界 -X，正对塔内
+    node.rotation.y = -Math.PI / 2;
     group.add(node);
 
     const accent = new THREE.Color(ex.swatches[0].hex);
-    // 色板整体明度：越亮的流派，光晕越收，否则会和浅色墙糊成一片
+    // 色板整体明度：越亮的流派光晕越收，否则会和洗墙光糊成一片
     const avgLum = ex.swatches.reduce((s, c) => s + luminance(c.hex), 0) / ex.swatches.length;
     const haloScale = 1 - Math.min(1, Math.max(0, (avgLum - 0.1) / 0.6)) * 0.62;
 
-    /* 光晕：展框背后的那团光。放在最里层、最先画。 */
+    /* 光晕：紧贴墙面，藏在展框背后 */
     const haloMat = new THREE.MeshBasicMaterial({
       map: haloTex,
       color: accent,
@@ -93,14 +74,14 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       blending: THREE.AdditiveBlending,
     });
     const halo = new THREE.Mesh(
-      new THREE.PlaneGeometry(PLATE_WORLD_W * 1.85, PLATE_WORLD_H * 1.5),
+      new THREE.PlaneGeometry(PLATE_WORLD_W * 1.8, PLATE_WORLD_H * 1.34),
       haloMat,
     );
-    halo.position.set(0, PLATE_Y, -0.34);
+    halo.position.set(0, 0, 0.05);
     halo.renderOrder = -1;
     node.add(halo);
 
-    /* 金属边框：阳极氧化铝的质感，靠环境贴图才有反射层次 */
+    /* 金属边框 */
     const frameMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color('#3a3a43'),
       roughness: 0.19,
@@ -111,7 +92,7 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       new THREE.BoxGeometry(PLATE_WORLD_W + 0.2, PLATE_WORLD_H + 0.2, 0.2),
       frameMat,
     );
-    metal.position.set(0, PLATE_Y, -0.11);
+    metal.position.set(0, 0, 0.2);
     metal.castShadow = tier.shadows;
     metal.receiveShadow = tier.shadows;
     metal.userData.exhibitId = ex.id;
@@ -132,12 +113,12 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       metalness: 0,
     });
     const art = new THREE.Mesh(new THREE.PlaneGeometry(PLATE_WORLD_W, PLATE_WORLD_H), artMat);
-    art.position.set(0, PLATE_Y, 0.005);
+    art.position.set(0, 0, 0.305);
     art.userData.exhibitId = ex.id;
     art.userData.pickable = 'art';
     node.add(art);
 
-    /* 展框下沿的一道发光细线：像博物馆里那条藏在画框下的 LED，最点睛的一笔 */
+    /* 展框下沿的发光细线 */
     const ledMat = new THREE.MeshBasicMaterial({
       color: accent,
       toneMapped: false,
@@ -145,10 +126,10 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       opacity: 0.6,
     });
     const led = new THREE.Mesh(new THREE.BoxGeometry(PLATE_WORLD_W * 0.3, 0.014, 0.02), ledMat);
-    led.position.set(0, PLATE_Y - PLATE_WORLD_H / 2 - 0.045, 0.02);
+    led.position.set(0, -PLATE_WORLD_H / 2 - 0.05, 0.32);
     node.add(led);
 
-    /* 展签 */
+    /* 展签：挂在展框正下方 */
     const labelCanvas = paintLabel(ex, lang);
     const labelTex = new THREE.CanvasTexture(labelCanvas);
     labelTex.colorSpace = THREE.SRGBColorSpace;
@@ -162,13 +143,13 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       metalness: 0,
     });
     const label = new THREE.Mesh(new THREE.PlaneGeometry(LABEL_WORLD_W, LABEL_WORLD_H), labelMat);
-    label.position.set(0, LABEL_Y, 0.005);
+    label.position.set(0, LABEL_DY, 0.09);
     label.userData.exhibitId = ex.id;
     label.userData.pickable = 'label';
     node.add(label);
 
     const labelPlate = new THREE.Mesh(
-      new THREE.BoxGeometry(LABEL_WORLD_W + 0.12, LABEL_WORLD_H + 0.1, 0.05),
+      new THREE.BoxGeometry(LABEL_WORLD_W + 0.1, LABEL_WORLD_H + 0.08, 0.05),
       new THREE.MeshStandardMaterial({
         color: new THREE.Color('#17171b'),
         roughness: 0.35,
@@ -176,43 +157,30 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
         envMapIntensity: 1.4,
       }),
     );
-    labelPlate.position.set(0, LABEL_Y, -0.04);
+    labelPlate.position.set(0, LABEL_DY, 0.045);
     labelPlate.castShadow = tier.shadows;
     labelPlate.userData.exhibitId = ex.id;
     labelPlate.userData.pickable = 'frame';
     node.add(labelPlate);
 
-    /* 地面光池 */
-    const poolMat = new THREE.MeshBasicMaterial({
-      map: poolTex,
-      color: accent,
-      transparent: true,
-      opacity: 0.1 * haloScale,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+    /* 灯槽：展位上沿的一道发光带，泛光会把它晕开。
+       它同时是「我在升降」最重要的视觉参照——一层层从画面里滑过去。 */
+    const coveMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#ffffff'),
+      toneMapped: false,
     });
-    const pool = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 7.2), poolMat);
-    pool.rotation.x = -Math.PI / 2;
-    pool.position.set(
-      Math.sin(angle) * (RING_RADIUS - 1.9),
-      0.014,
-      Math.cos(angle) * (RING_RADIUS - 1.9),
-    );
-    scene.add(pool);
+    const cove = new THREE.Mesh(new THREE.BoxGeometry(PLATE_WORLD_W * 1.16, 0.085, 0.05), coveMat);
+    cove.position.set(0, COVE_DY, 0.03);
+    node.add(cove);
 
     items.push({
       ex,
       index: i,
-      angle,
       node,
       art,
       artMat,
       halo,
       haloMat,
-      emissiveBase: 0.38,
-      labelBase: 0.32,
-      haloBase: 0.62 * haloScale,
-      poolBase: 0.1 * haloScale,
       led,
       ledMat,
       metal,
@@ -221,10 +189,14 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       labelMat,
       labelTex,
       labelPlate,
-      pool,
-      poolMat,
+      cove,
+      coveMat,
       plateTex,
       accent,
+      emissiveBase: 0.38,
+      labelBase: 0.32,
+      haloBase: 0.62 * haloScale,
+      y: slotY(i),
     });
 
     if (onProgress) onProgress(i + 1, exhibits.length);

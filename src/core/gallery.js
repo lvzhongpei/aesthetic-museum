@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { paintPlate, paintLabel, PLATE_W, PLATE_H, LABEL_W, LABEL_H } from './plates.js';
 import { RING_RADIUS } from './stage.js';
+import { luminance } from './color.js';
 
 export const PLATE_WORLD_W = 2.92;
 const PLATE_WORLD_H = PLATE_WORLD_W * (PLATE_H / PLATE_W);
@@ -78,13 +79,16 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
     group.add(node);
 
     const accent = new THREE.Color(ex.swatches[0].hex);
+    // 色板整体明度：越亮的流派，光晕越收，否则会和浅色墙糊成一片
+    const avgLum = ex.swatches.reduce((s, c) => s + luminance(c.hex), 0) / ex.swatches.length;
+    const haloScale = 1 - Math.min(1, Math.max(0, (avgLum - 0.1) / 0.6)) * 0.62;
 
     /* 光晕：展框背后的那团光。放在最里层、最先画。 */
     const haloMat = new THREE.MeshBasicMaterial({
       map: haloTex,
       color: accent,
       transparent: true,
-      opacity: 0.62,
+      opacity: 0.62 * haloScale,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
@@ -183,7 +187,7 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       map: poolTex,
       color: accent,
       transparent: true,
-      opacity: 0.1,
+      opacity: 0.1 * haloScale,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
@@ -205,6 +209,10 @@ export async function buildGallery(scene, exhibits, lang, renderer, tier, onProg
       artMat,
       halo,
       haloMat,
+      emissiveBase: 0.38,
+      labelBase: 0.32,
+      haloBase: 0.62 * haloScale,
+      poolBase: 0.1 * haloScale,
       led,
       ledMat,
       metal,

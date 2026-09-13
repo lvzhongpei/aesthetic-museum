@@ -40,8 +40,8 @@ export function atmosphereFrom(ex) {
 
   const avg = sw.reduce((s, c) => s + luminance(c), 0) / sw.length;
   const air = Math.max(0, Math.min(1, (avg - 0.08) / 0.62));
-  const wallL = 0.15 + air * 0.062;
-  const floorL = 0.095 + air * 0.05;
+  const wallL = 0.132 + air * 0.045;
+  const floorL = 0.085 + air * 0.035;
 
   return {
     ambient: hslToHex(hSeed, 0.28, 0.095 + air * 0.05),

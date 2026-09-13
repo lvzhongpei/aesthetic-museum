@@ -340,10 +340,10 @@ async function main() {
         focusAmt[i] += (target - focusAmt[i]) * (1 - Math.exp(-6 * dt));
         const it = items[i];
         it.art.position.z = 0.005 + focusAmt[i] * 0.05;
-        it.artMat.emissiveIntensity = 0.92 + focusAmt[i] * 0.34;
-        it.labelMat.emissiveIntensity = 0.72 + focusAmt[i] * 0.26;
-        it.haloMat.opacity = 0.72 + focusAmt[i] * 0.5;
-        it.poolMat.opacity = 0.22 + focusAmt[i] * 0.24;
+        it.artMat.emissiveIntensity = it.emissiveBase * (1 + focusAmt[i] * 0.4);
+        it.labelMat.emissiveIntensity = it.labelBase * (1 + focusAmt[i] * 0.4);
+        it.haloMat.opacity = it.haloBase * (1 + focusAmt[i] * 0.62);
+        it.poolMat.opacity = it.poolBase * (1 + focusAmt[i] * 1.6);
       }
     }
 
